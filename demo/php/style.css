@@ -1,0 +1,12 @@
+:root{font-family:Arial,sans-serif;color:#18252a;background:#edf2f1;line-height:1.5}
+*{box-sizing:border-box}main{max-width:1000px;margin:auto;padding:28px}
+header{border-bottom:5px solid #136653}h1{font-size:30px}h2{font-size:23px}
+nav{display:flex;gap:20px;flex-wrap:wrap;align-items:center;padding:20px 0}
+a{color:#095749}section{background:white;padding:25px;margin:18px 0;border-radius:8px}
+form{max-width:620px}nav form{margin:0}label{display:block;font-weight:bold;margin:12px 0}
+input,select,textarea{display:block;width:100%;font:inherit;padding:10px;border:1px solid #889e97;border-radius:4px}
+textarea{min-height:95px}button{background:#136653;color:white;border:0;border-radius:4px;padding:11px 20px;font:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:3px solid #d79117;outline-offset:3px}
+article{border-left:4px solid #a5c5b9;padding:4px 18px;margin:14px 0;background:#f4f8f6}
+.error{background:#fff3ed;border:2px solid #a5361a}dt{font-weight:bold}dd{margin-left:0;margin-bottom:10px}
+footer{color:#536760;margin:24px 0}@media(max-width:600px){main{padding:12px}section{padding:16px}h1{font-size:24px}}

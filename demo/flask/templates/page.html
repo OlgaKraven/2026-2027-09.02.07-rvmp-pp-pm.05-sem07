@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{{ domain.title }} — ПМ.05</title>
+  <link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}">
+</head>
+<body><main>
+<header><p>ПМ.05 · Проектирование и разработка информационных систем</p><h1>{{ domain.title }}</h1></header>
+<nav>
+{% if user %}
+  <a href="/">{{ 'Очередь заявок' if user.role == 'admin' else 'Мои заявки' }}</a>
+  <a href="/new">Создать заявку</a><span>{{ user.full_name }} · {{ user.role }}</span>
+  <form action="/logout" method="post"><input type="hidden" name="csrf" value="{{ session.csrf }}"><button>Выйти</button></form>
+{% else %}<a href="/login">Вход</a><a href="/register">Регистрация</a>{% endif %}
+</nav>
+{% if errors %}<section class="error" role="alert"><h2>Проверьте введённые данные</h2><ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul></section>{% endif %}
+{% macro input(name,label,type='text') %}
+<label>{{ label }}<input name="{{ name }}" type="{{ type }}" value="{{ '' if type == 'password' else values.get(name,'') }}" required></label>
+{% endmacro %}
+{% if page in ['login','register'] %}
+<section><h2>{{ 'Регистрация клиента' if page == 'register' else 'Вход в систему' }}</h2>
+<form method="post"><input type="hidden" name="csrf" value="{{ session.csrf }}">
+{{ input('login','Логин') }}{{ input('password','Пароль','password') }}
+{% if page == 'register' %}{{ input('full_name','ФИО') }}{{ input('phone','Телефон: 8(999)123-45-67') }}{{ input('email','Электронная почта','email') }}{% endif %}
+<button>{{ 'Создать пользователя' if page == 'register' else 'Войти' }}</button></form>
+<p><a href="{{ '/login' if page == 'register' else '/register' }}">{{ 'Уже зарегистрированы? Вход' if page == 'register' else 'Ещё не зарегистрированы? Регистрация' }}</a></p></section>
+{% elif page == 'new' %}
+<section><h2>Новая заявка</h2><form method="post"><input type="hidden" name="csrf" value="{{ session.csrf }}">
+{{ input('equipment','Оборудование и модель') }}
+<label>Неисправность<textarea name="symptom" required>{{ values.get('symptom','') }}</textarea></label>
+<label>Услуга<select name="service_id" required><option value="">Выберите услугу</option>{% for s in services %}<option value="{{ s.id }}" {% if values.get('service_id') == s.id|string %}selected{% endif %}>{{ s.name }}</option>{% endfor %}</select></label>
+{% for f in domain.fields %}<label>{{ f.label }}
+{% if f.type == 'select' %}<select name="{{ f.name }}"><option value="">Выберите значение</option>{% for choice in f.choices %}<option {% if values.get(f.name) == choice %}selected{% endif %}>{{ choice }}</option>{% endfor %}</select>
+{% else %}<input name="{{ f.name }}" value="{{ values.get(f.name,'') }}" type="{{ 'number' if f.type in ['number','integer'] else 'text' }}" step="{{ '1' if f.type == 'integer' else 'any' }}">{% endif %}</label>{% endfor %}
+<button>Отправить заявку</button></form></section>
+{% elif page == 'list' %}
+<section><h2>{{ 'Очередь заявок' if user.role == 'admin' else 'Мои заявки' }}</h2>
+<form method="get"><label>Статус<select name="status"><option value="">Все</option>{% for s in ['Новая','В работе','Завершена'] %}<option {% if status == s %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></label><button>Применить фильтр</button></form>
+{% for t in tickets %}<article><h3><a href="/ticket/{{ t.id }}">Заявка №{{ t.id }} · {{ t.equipment }}</a></h3><p>{{ t.service }} · <strong>{{ t.status }}</strong></p><p>Клиент: {{ t.full_name }} · Исполнитель: {{ t.technician or 'Не назначен' }}</p></article>{% else %}<p>Заявок по выбранным условиям нет.</p>{% endfor %}</section>
+{% elif page == 'detail' %}
+<section><h2>Заявка №{{ ticket.id }} · {{ ticket.status }}</h2><p>{{ ticket.equipment }} · {{ ticket.service }}</p><p>{{ ticket.symptom }}</p>
+<dl>{% for f in domain.fields %}<dt>{{ f.label }}</dt><dd>{{ details.get(f.name) or 'Не указано' }}</dd>{% endfor %}</dl>
+<p>Исполнитель: {{ ticket.technician or 'Не назначен' }}</p><p>Результат: {{ ticket.result or 'Работа ещё не завершена' }}</p>
+{% if user.role == 'admin' and ticket.status != 'Завершена' %}
+<form method="post"><input type="hidden" name="csrf" value="{{ session.csrf }}">
+<label>Исполнитель<select name="technician_id"><option value="">Назначьте исполнителя</option>{% for n in technicians %}<option value="{{ n.id }}" {% if ticket.technician_id == n.id %}selected{% endif %}>{{ n.name }}</option>{% endfor %}</select></label>
+<input type="hidden" name="status" value="{{ 'В работе' if ticket.status == 'Новая' else 'Завершена' }}">
+<label>Описание результата<textarea name="result">{{ values.get('result',ticket.result) }}</textarea></label>
+<button>{{ 'Принять в работу' if ticket.status == 'Новая' else 'Завершить заявку' }}</button></form>{% endif %}</section>
+<section><h2>История обработки</h2>{% for h in history %}<article><p>{{ h.changed_at }} · {{ h.full_name }}</p><p>{{ h.old_status or 'Создание' }} → <strong>{{ h.new_status }}</strong></p><p>{{ h.comment }}</p></article>{% endfor %}</section>
+{% endif %}
+<footer>Учебная демонстрация · версия 1.0 · отдельная учебная база данных</footer>
+</main></body></html>

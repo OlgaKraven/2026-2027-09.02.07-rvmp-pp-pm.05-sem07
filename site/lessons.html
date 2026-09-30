@@ -1,0 +1,669 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Инструкция и образец</title><link rel="icon" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"></head><body><a class="skip" href="#main">Перейти к содержанию</a><header class="shell top"><a class="brand" href="index.html"><span class="emblem">ПП</span><span><strong>Практика / Методические материалы</strong><small>РВМП · 7 семестр · Сервисные заявки: данные, серверная логика и тестирование</small></span></a><span class="version">Версия 1.0</span></header><div class="shell"><nav><a href="index.html" >Задание</a><a href="lessons.html" aria-current=page>Инструкция и образец</a><a href="areas.html" >Предметные области</a></nav><main id="main"><section class="hero"><p class="eyebrow">Учебный маршрут / 2026-2027</p><h1>Инструкция и образец</h1><p>РВМП · 7 семестр · Сервисные заявки: данные, серверная логика и тестирование</p><span class="badge">Учебный комплект</span></section><div class="downloads"><a class="button" href="downloads/assignment.pdf">Скачать задание практики (PDF)</a><a class="button" href="downloads/guide.pdf">Скачать методичку и образец (PDF)</a><a class="button" href="downloads/report-template.md">Скачать общий шаблон отчёта (Markdown)</a></div><article class="lesson"><h2>Сервисный центр учебной техники</h2><p>Отдельная область для разбора: создание проекта и БД, регистрация, заявки, исполнители, история и проверки в Flask или PHP.</p></article><article class="lesson" id="page-1"><p class="eyebrow"></p><h2>Как устроено решение и как читать руководство</h2><div class="blocks"><section class="block text"><h3>Демонстрационная область</h3><p>Учебный сервис принимает ноутбуки на диагностику питания и ремонт разъёма. Пользователь указывает модель, симптом, услугу, серийный номер и сведения о блоке питания. Для диагностики питания сведения о комплектности обязательны; значение «Нет» является допустимым ответом. Администратор выбирает мастера, переводит заявку в работу и завершает её с результатом. Начните с этой области, затем создайте собственную по карточке варианта.</p></section><section class="block text"><h3>Входные данные и ожидания</h3><p>Для проверки используйте только вымышленные сведения: Учебный Клиент, client01, client@example.test, 8(999)123-45-67. Учебный пароль выберите длиной не менее 8 символов. Для демонстрации: оборудование «Учебный ноутбук Модель А», неисправность «Не включается при подключении питания», серийный номер EDU-105, услуга «Диагностика питания». Отправка без ответа о блоке питания должна показать ошибку и сохранить поля формы; с ответом «Да» или «Нет» создаётся заявка.</p></section><section class="block text"><h3>Путь запроса</h3><p>Браузер отправляет форму серверу. Сервер проверяет сессию, токен формы, поля и правила. Только после успешной проверки он записывает данные в БД. Шаблон отображает результат. ER-диаграмма показывает связи сущностей, а транзакция объединяет несколько SQL-операций в одно целое: все изменения сохраняются вместе либо откатываются. ООП используется в DomainPolicy: объект хранит описание области и проверяет её значения.</p></section><section class="block text"><h3>Происхождение материалов</h3><p>Исходный код сервисного центра, схема и демонстрационные записи разработаны для этой практики; готовый сервер ПМ.08 не используется. Связь с КИМ относится к навыкам задания 1. Код в блоках ниже взят из соответствующих файлов демонстрации, его нужно вводить постепенно в указанные места.<br><a href="https://github.com/OlgaKraven/demo-rvpm-2027/blob/main/content/official.json">Открыть базовый образец ДЭ 2027 по разработке приложения</a> — Сопоставьте проектирование БД, регистрацию, авторизацию и обработку заявок с заданием 1. Сервисная область и проверки этой практики являются авторской адаптацией.<br><a href="https://olgakraven.github.io/2026-2027-09.02.07-rvmp-pp-pm.05-sem07/downloads/Service-center-demo.zip">Скачать демонстрационный сервисный центр для сверки (Flask и PHP, ZIP)</a> — Откройте после самостоятельной сборки демонстрации. Архив содержит код, схему БД, описание конфигурации и инструкцию запуска; это пример другой области, а не готовый индивидуальный вариант.</p></section></div></article><article class="lesson" id="page-2"><p class="eyebrow"></p><h2>Подготовьте рабочую папку и среду</h2><div class="blocks"><section class="block text"><h3>Выберите одну ветку</h3><p>Для Flask нужны установленный Python 3.11 или новее, Flask 3.1.3 и PyMySQL 1.2.0. Для PHP проверенная среда — PHP 8.2.4 с PDO MySQL, mbstring и JSON; допустима установленная совместимая PHP 8.2+. Обе ветки работают с MySQL или MariaDB и phpMyAdmin. В проверенной демонстрации использованы MySQL 9.6.0 и phpMyAdmin 5.2.1. Не требуется переносить на свой компьютер нестандартные порты проверочной среды: используйте значения своего учебного сервера.</p></section><section class="block text"><h3>Создайте структуру в VS Code</h3><p>В Проводнике создайте папку service-center. В VS Code нажмите «Файл → Открыть папку» и выберите её. В левой панели «Проводник» нажмите «Новая папка» и создайте flask, внутри неё templates и static. Для второй ветки создайте php. Общие schema.sql и domain.json располагаются в service-center рядом с этими папками. Правой кнопкой на нужной папке → «Создать файл» создаёт файл именно в ней. Расширения имён оставьте видимыми; schema.sql.txt и app.py.txt не подходят. Код сохраняйте в UTF-8 через Ctrl+S. На Mac вместо Ctrl используется Command для сохранения.</p></section><section class="block text"><h3>Откройте терминал</h3><p>В VS Code выберите «Терминал → Новый терминал». Команда pwd или Get-Location показывает текущую папку. Для Flask перейдите командой cd flask. В PowerShell выполните py -3 --version, затем py -3 -m venv .venv. Команды далее можно запускать напрямую: .\.venv\Scripts\python.exe. В macOS/Linux: python3 -m venv .venv, затем .venv/bin/python. Это отдельное окружение зависимостей проекта. Для PHP окружение Python не требуется.</p></section><section class="block text"><h3>Проверьте зависимости</h3><p>После ввода requirements.txt установите зависимости в окружение проекта: .\.venv\Scripts\python.exe -m pip install -r requirements.txt. В macOS/Linux: .venv/bin/python -m pip install -r requirements.txt. Если учебная среда работает без сети, используйте заранее предоставленный преподавателем каталог wheel: добавьте --no-index --find-links ПУТЬ_К_WHEEL. Не продолжайте при сообщении ModuleNotFoundError; сначала проверьте, тот ли интерпретатор используется. Для PHP откройте XAMPP Control Panel, запустите Apache и MySQL кнопками Start, откройте http://localhost/phpmyadmin. Команда php -m должна содержать pdo_mysql и mbstring. Если php не найден, используйте установленный путь C:\xampp\php\php.exe.</p></section></div></article><article class="lesson" id="page-3"><p class="eyebrow"></p><h2>Проектирование данных перед SQL</h2><div class="blocks"><section class="block text"><h3>Выделите сущности из требований</h3><p>Фраза «клиент создаёт заявку» даёт users и tickets; «выбирает услугу» — services; «назначается исполнитель» — technicians; «сохраняется история» — ticket_history. У каждой таблицы есть числовой первичный ключ id. Логин уникален, пароль хранится как хеш. В заявке сохраняются ссылки user_id, service_id, technician_id, а не копии имён. История хранит ticket_id и actor_id, старый/новый статусы и комментарий.</p></section><section class="block text"><h3>Обоснуйте типы и связи</h3><p>INT подходит для идентификатора; VARCHAR — для ограниченной строки; TEXT — для развёрнутого описания; TIMESTAMP — для момента события. JSON хранит небольшие параметры изделия; поля, используемые в связях или регулярном поиске, следует выделять в отдельные типизированные столбцы. В демонстрации JSON позволяет менять предметные поля без переписывания общей заявки. Один клиент имеет много заявок; одна заявка — много событий. technician_id допускает NULL, поскольку новая заявка ещё не назначена.</p></section><section class="block text"><h3>Создайте пустую БД</h3><p>В phpMyAdmin слева нажмите «Создать БД». Укажите pm05_flask для Flask или pm05_php для PHP. Выберите utf8mb4_unicode_ci и нажмите «Создать». Не выбирайте пользовательскую или чужую базу. Слева откройте новую БД, затем вкладку SQL. После каждой законченной команды CREATE TABLE из следующего раздела нажмите «Вперёд» и проверьте новую таблицу через «Структура». Для двух веток нужны две БД: форматы хешей их паролей различаются.</p></section><section class="block text"><h3>Проверьте связи в инструменте СУБД</h3><p>После всех таблиц откройте БД → «Ещё» → «Дизайнер». Перетащите заголовки таблиц так, чтобы они не перекрывались. Проверьте пять связей: tickets.user_id → users.id, tickets.service_id → services.id, tickets.technician_id → technicians.id, ticket_history.ticket_id → tickets.id, ticket_history.actor_id → users.id. Сохраните изображение диаграммы в папку проекта. Если связь не видна, откройте таблицу → «Структура» → «Представление отношений» и проверьте внешний ключ, тип INT и InnoDB. Не рисуйте линию, которую БД фактически не поддерживает.</p></section><figure class="block screenshot"><h3>ER-диаграмма в phpMyAdmin</h3><img src="assets/screenshots/b105c8737ab8a8b4.jpg" alt="ER-диаграмма в phpMyAdmin"><figcaption>Реальный конструктор БД pm05_flask: пять таблиц и все внешние ключи. Положение таблиц на вашем экране может отличаться.</figcaption></figure></div></article><article class="lesson" id="page-4"><p class="eyebrow"></p><h2>schema.sql · Пользователи</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Создайте новый пустой файл schema.sql в структуре service-center. Источник: авторский демонстрационный файл demo/schema.sql из архива практики. Введите строки ниже в указанном порядке. Идентификатор, уникальный логин, хеш пароля и контакты. UNIQUE защищает от повторного логина даже при одновременной регистрации. CHECK ограничивает роли.</p></section><section class="block code"><h3>Пользователи</h3><pre>CREATE TABLE users (
+ id INT PRIMARY KEY AUTO_INCREMENT,
+ login VARCHAR(40) NOT NULL UNIQUE,
+ password_hash VARCHAR(255) NOT NULL,
+ full_name VARCHAR(120) NOT NULL,
+ phone VARCHAR(20) NOT NULL,
+ email VARCHAR(120) NOT NULL,
+ role VARCHAR(10) NOT NULL DEFAULT &#x27;client&#x27;,
+ CHECK (role IN (&#x27;client&#x27;,&#x27;admin&#x27;))
+) ENGINE=InnoDB;
+</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Выполните эту законченную SQL-команду на вкладке SQL и проверьте Структура. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-5"><p class="eyebrow"></p><h2>schema.sql · Услуги</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции schema.sql в структуре service-center. Источник: авторский демонстрационный файл demo/schema.sql из архива практики. Введите строки ниже в указанном порядке. Отдельный справочник с active. Отключённая услуга сохраняется для истории, но не предлагается в новых заявках.</p></section><section class="block code"><h3>Услуги</h3><pre>CREATE TABLE services (
+ id INT PRIMARY KEY AUTO_INCREMENT,
+ name VARCHAR(80) NOT NULL UNIQUE,
+ active BOOLEAN NOT NULL DEFAULT TRUE
+) ENGINE=InnoDB;
+</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Выполните эту законченную SQL-команду на вкладке SQL и проверьте Структура. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-6"><p class="eyebrow"></p><h2>schema.sql · Исполнители</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции schema.sql в структуре service-center. Источник: авторский демонстрационный файл demo/schema.sql из архива практики. Введите строки ниже в указанном порядке. Справочник исполнителей. Флаг активности позволяет не удалять мастера, чьё имя связано с прежними заявками.</p></section><section class="block code"><h3>Исполнители</h3><pre>CREATE TABLE technicians (
+ id INT PRIMARY KEY AUTO_INCREMENT,
+ name VARCHAR(120) NOT NULL,
+ active BOOLEAN NOT NULL DEFAULT TRUE
+) ENGINE=InnoDB;
+</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Выполните эту законченную SQL-команду на вкладке SQL и проверьте Структура. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-7"><p class="eyebrow"></p><h2>schema.sql · Заявки</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции schema.sql в структуре service-center. Источник: авторский демонстрационный файл demo/schema.sql из архива практики. Введите строки ниже в указанном порядке. Внешние ключи запрещают ссылки на отсутствующие записи. Значение статуса по умолчанию — Новая; результат изначально пустой. NULL для исполнителя допустим до принятия в работу.</p></section><section class="block code"><h3>Заявки</h3><pre>CREATE TABLE tickets (
+ id INT PRIMARY KEY AUTO_INCREMENT,
+ user_id INT NOT NULL,
+ service_id INT NOT NULL,
+ technician_id INT NULL,
+ equipment VARCHAR(120) NOT NULL,
+ symptom TEXT NOT NULL,
+ parameters JSON NOT NULL,
+ status VARCHAR(20) NOT NULL DEFAULT &#x27;Новая&#x27;,
+ result TEXT NOT NULL,
+ created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ FOREIGN KEY (user_id) REFERENCES users(id),
+ FOREIGN KEY (service_id) REFERENCES services(id),
+ FOREIGN KEY (technician_id) REFERENCES technicians(id),
+ CHECK (status IN (&#x27;Новая&#x27;,&#x27;В работе&#x27;,&#x27;Завершена&#x27;))
+) ENGINE=InnoDB;
+</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Выполните эту законченную SQL-команду на вкладке SQL и проверьте Структура. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-8"><p class="eyebrow"></p><h2>schema.sql · История</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции schema.sql в структуре service-center. Источник: авторский демонстрационный файл demo/schema.sql из архива практики. Введите строки ниже в указанном порядке. Событие связано с заявкой и автором. При создании старого статуса нет. Не удаляйте события при фильтрации или просмотре.</p></section><section class="block code"><h3>История</h3><pre>CREATE TABLE ticket_history (
+ id INT PRIMARY KEY AUTO_INCREMENT,
+ ticket_id INT NOT NULL,
+ actor_id INT NOT NULL,
+ old_status VARCHAR(20) NULL,
+ new_status VARCHAR(20) NOT NULL,
+ comment TEXT NOT NULL,
+ changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ FOREIGN KEY (ticket_id) REFERENCES tickets(id),
+ FOREIGN KEY (actor_id) REFERENCES users(id)
+) ENGINE=InnoDB;
+</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Выполните эту законченную SQL-команду на вкладке SQL и проверьте Структура. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-9"><p class="eyebrow"></p><h2>schema.sql · Начальные справочники</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции schema.sql в структуре service-center. Источник: авторский демонстрационный файл demo/schema.sql из архива практики. Введите строки ниже в указанном порядке. Создаются две услуги и два вымышленных исполнителя. Пользователи добавляются приложением, чтобы пароль сразу был корректно хеширован.</p></section><section class="block code"><h3>Начальные справочники</h3><pre>INSERT INTO services(name) VALUES (&#x27;Диагностика питания&#x27;),(&#x27;Ремонт разъёма&#x27;);
+INSERT INTO technicians(name) VALUES (&#x27;Мастер учебного сервиса&#x27;),(&#x27;Специалист по разъёмам&#x27;);</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Выполните эту законченную SQL-команду на вкладке SQL и проверьте Структура. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-10"><p class="eyebrow"></p><h2>domain.json · Параметры демонстрационной области</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Создайте новый пустой файл domain.json в структуре service-center. Источник: авторский демонстрационный файл demo/domain.json из архива практики. Введите строки ниже в указанном порядке. fields описывает имя, подпись, тип и допустимые значения. Правило when проверяет название услуги, require требует ответ о блоке питания. «Нет» — заполненное значение. Вводите этот JSON в файл рядом с flask и php; обе ветки читают один формат.</p></section><section class="block code"><h3>Параметры демонстрационной области</h3><pre>{
+  &quot;title&quot;: &quot;Сервисный центр учебной техники&quot;,
+  &quot;fields&quot;: [
+    {&quot;name&quot;: &quot;serial&quot;, &quot;label&quot;: &quot;Серийный номер&quot;, &quot;type&quot;: &quot;text&quot;, &quot;required&quot;: true, &quot;pattern&quot;: &quot;^[A-Za-z0-9-]{3,30}$&quot;},
+    {&quot;name&quot;: &quot;adapter&quot;, &quot;label&quot;: &quot;Блок питания в комплекте&quot;, &quot;type&quot;: &quot;select&quot;, &quot;choices&quot;: [&quot;Да&quot;, &quot;Нет&quot;]}
+  ],
+  &quot;rules&quot;: [
+    {&quot;when&quot;: {&quot;field&quot;: &quot;service&quot;, &quot;equals&quot;: &quot;Диагностика питания&quot;}, &quot;require&quot;: &quot;adapter&quot;, &quot;message&quot;: &quot;Для диагностики питания укажите, передан ли блок питания.&quot;}
+  ]
+}</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл в указанном каталоге. При ошибке формата JSON проверьте двойные кавычки, запятые и парные скобки. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-11"><p class="eyebrow"></p><h2>Проверьте схему и предметную конфигурацию</h2><div class="blocks"><section class="block text"><h3>Проверка БД</h3><p>В phpMyAdmin откройте services → Обзор: должны быть две услуги. technicians → Обзор: два исполнителя. Откройте tickets → Структура → Представление отношений и проверьте три внешних ключа. Выполните SELECT COUNT(*) FROM users; перед регистрацией число равно нулю. Попытка вставки заявки с отсутствующим user_id должна быть отвергнута БД; не отключайте проверку внешних ключей.</p></section><section class="block text"><h3>Проверка JSON</h3><p>В терминале из service-center выполните python -m json.tool domain.json. Команда должна вывести корректно отформатированный JSON без ошибки. fields содержит serial и adapter, rules — условную обязательность adapter. Если нет Python в PHP-ветке, JSON проверится при загрузке index.php; используйте двойные кавычки и проверяйте текст ошибки JSON_THROW_ON_ERROR.</p></section></div></article><article class="lesson" id="page-12"><p class="eyebrow"></p><h2>flask/requirements.txt · Зависимости Flask</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Создайте новый пустой файл flask/requirements.txt в структуре service-center. Источник: авторский демонстрационный файл demo/flask/requirements.txt из архива практики. Введите строки ниже в указанном порядке. Это перечень библиотек приложения. Flask обрабатывает HTTP и шаблоны, PyMySQL подключается к MySQL/MariaDB. Установите их в окружение проекта командой из подготовки среды.</p></section><section class="block code"><h3>Зависимости Flask</h3><pre>Flask==3.1.3
+PyMySQL==1.2.0</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл и проверьте его имя и каталог. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-13"><p class="eyebrow"></p><h2>flask/db.py · Импорты подключения</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Создайте новый пустой файл flask/db.py в структуре service-center. Источник: авторский демонстрационный файл demo/flask/db.py из архива практики. Введите строки ниже в указанном порядке. os читает конфигурацию из переменных окружения; pymysql реализует подключение; contextmanager превращает функцию в управляемый контекст.</p></section><section class="block code"><h3>Импорты подключения</h3><pre>import os
+import pymysql
+from contextlib import contextmanager
+
+</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-14"><p class="eyebrow"></p><h2>flask/db.py · Соединение и транзакция</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции flask/db.py в структуре service-center. Источник: авторский демонстрационный файл demo/flask/db.py из архива практики. Введите строки ниже в указанном порядке. Блок with открывает соединение, после успешного выхода фиксирует транзакцию. Исключение вызывает rollback, finally всегда закрывает соединение. DictCursor возвращает именованные поля вместо позиционных кортежей.</p></section><section class="block code"><h3>Соединение и транзакция</h3><pre>@contextmanager
+def database():
+    connection = pymysql.connect(
+        host=os.environ.get(&#x27;DB_HOST&#x27;, &#x27;127.0.0.1&#x27;),
+        port=int(os.environ.get(&#x27;DB_PORT&#x27;, &#x27;3306&#x27;)),
+        user=os.environ.get(&#x27;DB_USER&#x27;, &#x27;root&#x27;),
+        password=os.environ.get(&#x27;DB_PASSWORD&#x27;, &#x27;&#x27;),
+        database=os.environ.get(&#x27;DB_NAME&#x27;, &#x27;pm05_flask&#x27;),
+        charset=&#x27;utf8mb4&#x27;, cursorclass=pymysql.cursors.DictCursor,
+    )
+    try:
+        yield connection
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        connection.close()
+
+</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-15"><p class="eyebrow"></p><h2>flask/db.py · Чтение записей</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции flask/db.py в структуре service-center. Источник: авторский демонстрационный файл demo/flask/db.py из архива практики. Введите строки ниже в указанном порядке. rows выполняет параметризованный запрос и возвращает список словарей. Значения передаются отдельно через args. Не подставляйте введённый пользователем текст в SQL через f-строки.</p></section><section class="block code"><h3>Чтение записей</h3><pre>def rows(sql, args=()):
+    with database() as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(sql, args)
+            return cursor.fetchall()</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-16"><p class="eyebrow"></p><h2>flask/rules.py · Инструменты проверки</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Создайте новый пустой файл flask/rules.py в структуре service-center. Источник: авторский демонстрационный файл demo/flask/rules.py из архива практики. Введите строки ниже в указанном порядке. math.isfinite отвергает бесконечные числовые значения. re обеспечивает проверку формата целой строки.</p></section><section class="block code"><h3>Инструменты проверки</h3><pre>import math
+import re
+
+</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-17"><p class="eyebrow"></p><h2>flask/rules.py · Предметные поля</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции flask/rules.py в структуре service-center. Источник: авторский демонстрационный файл demo/flask/rules.py из архива практики. Введите строки ниже в указанном порядке. Сначала проверяется каждое поле: обязательность, длина, перечисление, формат или диапазон числа. Затем выполняются условные правила. Ошибки собираются в список, поэтому пользователь может исправить несколько полей за один раз. Пустое необязательное поле пропускается; условное правило может потребовать его отдельно.</p></section><section class="block code"><h3>Предметные поля</h3><pre>def validate_details(domain, values):
+    errors = []
+    for field in domain[&#x27;fields&#x27;]:
+        value = values.get(field[&#x27;name&#x27;], &#x27;&#x27;).strip()
+        if not value:
+            if field.get(&#x27;required&#x27;):
+                errors.append(f&quot;Заполните поле «{field[&#x27;label&#x27;]}».&quot;)
+            continue
+        if len(value) &gt; 120:
+            errors.append(f&quot;Поле «{field[&#x27;label&#x27;]}» слишком длинное.&quot;)
+        if field[&#x27;type&#x27;] == &#x27;select&#x27; and value not in field[&#x27;choices&#x27;]:
+            errors.append(f&quot;Выберите допустимое значение «{field[&#x27;label&#x27;]}».&quot;)
+        if field.get(&#x27;pattern&#x27;) and not re.fullmatch(field[&#x27;pattern&#x27;], value):
+            errors.append(f&quot;Проверьте формат «{field[&#x27;label&#x27;]}».&quot;)
+        if field[&#x27;type&#x27;] in (&#x27;number&#x27;, &#x27;integer&#x27;):
+            try:
+                number = float(value)
+                valid = math.isfinite(number)
+                valid &amp;= field[&#x27;type&#x27;] != &#x27;integer&#x27; or number.is_integer()
+                valid &amp;= number &gt;= field.get(&#x27;min&#x27;, 0)
+                valid &amp;= number &lt;= field.get(&#x27;max&#x27;, 100000)
+                if not valid:
+                    raise ValueError()
+            except ValueError:
+                errors.append(f&quot;Проверьте число «{field[&#x27;label&#x27;]}».&quot;)
+    for rule in domain.get(&#x27;rules&#x27;, []):
+        condition = rule[&#x27;when&#x27;]
+        if values.get(condition[&#x27;field&#x27;]) == condition[&#x27;equals&#x27;]:
+            if rule.get(&#x27;require&#x27;) and not values.get(rule[&#x27;require&#x27;], &#x27;&#x27;).strip():
+                errors.append(rule[&#x27;message&#x27;])
+            if rule.get(&#x27;expect&#x27;):
+                expected = rule[&#x27;expect&#x27;]
+                if values.get(expected[&#x27;field&#x27;]) != expected[&#x27;equals&#x27;]:
+                    errors.append(rule[&#x27;message&#x27;])
+    return errors
+
+</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-18"><p class="eyebrow"></p><h2>flask/rules.py · Регистрационные данные</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции flask/rules.py в структуре service-center. Источник: авторский демонстрационный файл demo/flask/rules.py из архива практики. Введите строки ниже в указанном порядке. Логин содержит латиницу и цифры, ФИО — кириллицу и пробелы; формат телефона фиксирован. Пароль ограничен по байтам UTF-8, чтобы длинные строки не усекались при хешировании в PHP. Проверка происходит на сервере, а не только через required в HTML.</p></section><section class="block code"><h3>Регистрационные данные</h3><pre>def validate_registration(values):
+    errors = []
+    if not re.fullmatch(r&#x27;[A-Za-z0-9]{6,40}&#x27;, values.get(&#x27;login&#x27;, &#x27;&#x27;)):
+        errors.append(&#x27;Логин: от 6 до 40 латинских букв и цифр.&#x27;)
+    if not 8 &lt;= len(values.get(&#x27;password&#x27;, &#x27;&#x27;)) or len(values.get(&#x27;password&#x27;, &#x27;&#x27;).encode(&#x27;utf-8&#x27;)) &gt; 64:
+        errors.append(&#x27;Пароль: от 8 символов, не более 64 байт UTF-8.&#x27;)
+    if not re.fullmatch(r&#x27;[А-Яа-яЁё ]{3,120}&#x27;, values.get(&#x27;full_name&#x27;, &#x27;&#x27;)):
+        errors.append(&#x27;ФИО: кириллица и пробелы.&#x27;)
+    if not re.fullmatch(r&#x27;8\(\d{3}\)\d{3}-\d{2}-\d{2}&#x27;, values.get(&#x27;phone&#x27;, &#x27;&#x27;)):
+        errors.append(&#x27;Телефон: 8(999)123-45-67.&#x27;)
+    if not re.fullmatch(r&#x27;[^\s@]+@[^\s@]+\.[^\s@]+&#x27;, values.get(&#x27;email&#x27;, &#x27;&#x27;)) or len(values.get(&#x27;email&#x27;,&#x27;&#x27;)) &gt; 120:
+        errors.append(&#x27;Введите корректную электронную почту.&#x27;)
+    return errors
+
+</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-19"><p class="eyebrow"></p><h2>flask/rules.py · Объект предметной политики</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции flask/rules.py в структуре service-center. Источник: авторский демонстрационный файл demo/flask/rules.py из архива практики. Введите строки ниже в указанном порядке. Экземпляр хранит конфигурацию своей области и предоставляет метод validate. Серверу достаточно вызвать метод, не зная подробностей выбранных полей. Такой объект отделяет правила предметной области от HTTP-маршрутов.</p></section><section class="block code"><h3>Объект предметной политики</h3><pre>class DomainPolicy:
+    def __init__(self, domain):
+        self.domain = domain
+
+    def validate(self, values):
+        return validate_details(self.domain, values)</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-20"><p class="eyebrow"></p><h2>Проверьте правила до подключения формы</h2><div class="blocks"><section class="block text"><h3>Положительный и отрицательный случай</h3><p>Из папки flask откройте интерактивный Python командой интерпретатора окружения. Введите: from rules import DomainPolicy; import json; from pathlib import Path. Создайте p = DomainPolicy(json.loads(Path(&quot;../domain.json&quot;).read_text(encoding=&quot;utf-8&quot;))). Вызов p.validate({&quot;serial&quot;:&quot;EDU-105&quot;,&quot;adapter&quot;:&quot;Да&quot;,&quot;service&quot;:&quot;Диагностика питания&quot;}) возвращает []. Повторите с adapter равным пустой строке: возвращается сообщение о комплектности. Введите exit() для выхода. Это проверяет причину отказа отдельно от HTML и БД.</p></section></div></article><article class="lesson" id="page-21"><p class="eyebrow"></p><h2>flask/static/style.css · Рабочий интерфейс</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Создайте новый пустой файл flask/static/style.css в структуре service-center. Источник: авторский демонстрационный файл demo/flask/static/style.css из архива практики. Введите строки ниже в указанном порядке. CSS задаёт читаемый рабочий интерфейс, состояния ошибок и фокус. Это оформление демонстрации; индивидуальная работа ПМ.05 оценивается по функциональности и данным. Сохраните файл в static, а не рядом с app.py.</p></section><section class="block code"><h3>Рабочий интерфейс</h3><pre>:root{font-family:Arial,sans-serif;color:#18252a;background:#edf2f1;line-height:1.5}
+*{box-sizing:border-box}main{max-width:1000px;margin:auto;padding:28px}
+header{border-bottom:5px solid #136653}h1{font-size:30px}h2{font-size:23px}
+nav{display:flex;gap:20px;flex-wrap:wrap;align-items:center;padding:20px 0}
+a{color:#095749}section{background:white;padding:25px;margin:18px 0;border-radius:8px}
+form{max-width:620px}nav form{margin:0}label{display:block;font-weight:bold;margin:12px 0}
+input,select,textarea{display:block;width:100%;font:inherit;padding:10px;border:1px solid #889e97;border-radius:4px}
+textarea{min-height:95px}button{background:#136653;color:white;border:0;border-radius:4px;padding:11px 20px;font:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:3px solid #d79117;outline-offset:3px}
+article{border-left:4px solid #a5c5b9;padding:4px 18px;margin:14px 0;background:#f4f8f6}
+.error{background:#fff3ed;border:2px solid #a5361a}dt{font-weight:bold}dd{margin-left:0;margin-bottom:10px}
+footer{color:#536760;margin:24px 0}@media(max-width:600px){main{padding:12px}section{padding:16px}h1{font-size:24px}}</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл и проверьте его имя и каталог. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-22"><p class="eyebrow"></p><h2>flask/templates/page.html · Каркас и навигация</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Создайте новый пустой файл flask/templates/page.html в структуре service-center. Источник: авторский демонстрационный файл demo/flask/templates/page.html из архива практики. Введите строки ниже в указанном порядке. Создайте templates/page.html. Верхняя часть подключает стиль и отображает навигацию в зависимости от роли. POST-форма выхода содержит токен csrf. Jinja автоматически экранирует выводимые значения.</p></section><section class="block code"><h3>Каркас и навигация</h3><pre>&lt;!doctype html&gt;
+&lt;html lang=&quot;ru&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;
+  &lt;title&gt;{{ domain.title }} — ПМ.05&lt;/title&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;{{ url_for(&#x27;static&#x27;,filename=&#x27;style.css&#x27;) }}&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;&lt;main&gt;
+&lt;header&gt;&lt;p&gt;ПМ.05 · Проектирование и разработка информационных систем&lt;/p&gt;&lt;h1&gt;{{ domain.title }}&lt;/h1&gt;&lt;/header&gt;
+&lt;nav&gt;
+{% if user %}
+  &lt;a href=&quot;/&quot;&gt;{{ &#x27;Очередь заявок&#x27; if user.role == &#x27;admin&#x27; else &#x27;Мои заявки&#x27; }}&lt;/a&gt;
+  &lt;a href=&quot;/new&quot;&gt;Создать заявку&lt;/a&gt;&lt;span&gt;{{ user.full_name }} · {{ user.role }}&lt;/span&gt;
+  &lt;form action=&quot;/logout&quot; method=&quot;post&quot;&gt;&lt;input type=&quot;hidden&quot; name=&quot;csrf&quot; value=&quot;{{ session.csrf }}&quot;&gt;&lt;button&gt;Выйти&lt;/button&gt;&lt;/form&gt;
+{% else %}&lt;a href=&quot;/login&quot;&gt;Вход&lt;/a&gt;&lt;a href=&quot;/register&quot;&gt;Регистрация&lt;/a&gt;{% endif %}
+&lt;/nav&gt;
+{% if errors %}&lt;section class=&quot;error&quot; role=&quot;alert&quot;&gt;&lt;h2&gt;Проверьте введённые данные&lt;/h2&gt;&lt;ul&gt;{% for error in errors %}&lt;li&gt;{{ error }}&lt;/li&gt;{% endfor %}&lt;/ul&gt;&lt;/section&gt;{% endif %}</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Не запускайте незавершённую HTML/Jinja/PHP-разметку: сначала закончите весь шаблон, включая закрывающие конструкции. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-23"><p class="eyebrow"></p><h2>flask/templates/page.html · Повторяемое поле</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции flask/templates/page.html в структуре service-center. Источник: авторский демонстрационный файл demo/flask/templates/page.html из архива практики. Введите строки ниже в указанном порядке. Макрос input уменьшает дублирование разметки. После ошибки он возвращает введённые данные, но никогда не возвращает пароль в value.</p></section><section class="block code"><h3>Повторяемое поле</h3><pre>{% macro input(name,label,type=&#x27;text&#x27;) %}
+&lt;label&gt;{{ label }}&lt;input name=&quot;{{ name }}&quot; type=&quot;{{ type }}&quot; value=&quot;{{ &#x27;&#x27; if type == &#x27;password&#x27; else values.get(name,&#x27;&#x27;) }}&quot; required&gt;&lt;/label&gt;
+{% endmacro %}</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Не запускайте незавершённую HTML/Jinja/PHP-разметку: сначала закончите весь шаблон, включая закрывающие конструкции. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-24"><p class="eyebrow"></p><h2>flask/templates/page.html · Регистрация и вход</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции flask/templates/page.html в структуре service-center. Источник: авторский демонстрационный файл demo/flask/templates/page.html из архива практики. Введите строки ниже в указанном порядке. Форма содержит скрытый токен, логин, пароль и дополнительные поля регистрации. Имена name совпадают с ключами request.form. Метод POST передаёт данные для изменения состояния.</p></section><section class="block code"><h3>Регистрация и вход</h3><pre>{% if page in [&#x27;login&#x27;,&#x27;register&#x27;] %}
+&lt;section&gt;&lt;h2&gt;{{ &#x27;Регистрация клиента&#x27; if page == &#x27;register&#x27; else &#x27;Вход в систему&#x27; }}&lt;/h2&gt;
+&lt;form method=&quot;post&quot;&gt;&lt;input type=&quot;hidden&quot; name=&quot;csrf&quot; value=&quot;{{ session.csrf }}&quot;&gt;
+{{ input(&#x27;login&#x27;,&#x27;Логин&#x27;) }}{{ input(&#x27;password&#x27;,&#x27;Пароль&#x27;,&#x27;password&#x27;) }}
+{% if page == &#x27;register&#x27; %}{{ input(&#x27;full_name&#x27;,&#x27;ФИО&#x27;) }}{{ input(&#x27;phone&#x27;,&#x27;Телефон: 8(999)123-45-67&#x27;) }}{{ input(&#x27;email&#x27;,&#x27;Электронная почта&#x27;,&#x27;email&#x27;) }}{% endif %}
+&lt;button&gt;{{ &#x27;Создать пользователя&#x27; if page == &#x27;register&#x27; else &#x27;Войти&#x27; }}&lt;/button&gt;&lt;/form&gt;
+&lt;p&gt;&lt;a href=&quot;{{ &#x27;/login&#x27; if page == &#x27;register&#x27; else &#x27;/register&#x27; }}&quot;&gt;{{ &#x27;Уже зарегистрированы? Вход&#x27; if page == &#x27;register&#x27; else &#x27;Ещё не зарегистрированы? Регистрация&#x27; }}&lt;/a&gt;&lt;/p&gt;&lt;/section&gt;</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Не запускайте незавершённую HTML/Jinja/PHP-разметку: сначала закончите весь шаблон, включая закрывающие конструкции. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-25"><p class="eyebrow"></p><h2>flask/templates/page.html · Форма заявки</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции flask/templates/page.html в структуре service-center. Источник: авторский демонстрационный файл demo/flask/templates/page.html из архива практики. Введите строки ниже в указанном порядке. Услуги поступают из активного справочника. Предметные поля строятся из domain.fields. Приведение id к строке нужно для сравнения с HTML-значением. Ошибочные значения остаются в форме.</p></section><section class="block code"><h3>Форма заявки</h3><pre>{% elif page == &#x27;new&#x27; %}
+&lt;section&gt;&lt;h2&gt;Новая заявка&lt;/h2&gt;&lt;form method=&quot;post&quot;&gt;&lt;input type=&quot;hidden&quot; name=&quot;csrf&quot; value=&quot;{{ session.csrf }}&quot;&gt;
+{{ input(&#x27;equipment&#x27;,&#x27;Оборудование и модель&#x27;) }}
+&lt;label&gt;Неисправность&lt;textarea name=&quot;symptom&quot; required&gt;{{ values.get(&#x27;symptom&#x27;,&#x27;&#x27;) }}&lt;/textarea&gt;&lt;/label&gt;
+&lt;label&gt;Услуга&lt;select name=&quot;service_id&quot; required&gt;&lt;option value=&quot;&quot;&gt;Выберите услугу&lt;/option&gt;{% for s in services %}&lt;option value=&quot;{{ s.id }}&quot; {% if values.get(&#x27;service_id&#x27;) == s.id|string %}selected{% endif %}&gt;{{ s.name }}&lt;/option&gt;{% endfor %}&lt;/select&gt;&lt;/label&gt;
+{% for f in domain.fields %}&lt;label&gt;{{ f.label }}
+{% if f.type == &#x27;select&#x27; %}&lt;select name=&quot;{{ f.name }}&quot;&gt;&lt;option value=&quot;&quot;&gt;Выберите значение&lt;/option&gt;{% for choice in f.choices %}&lt;option {% if values.get(f.name) == choice %}selected{% endif %}&gt;{{ choice }}&lt;/option&gt;{% endfor %}&lt;/select&gt;
+{% else %}&lt;input name=&quot;{{ f.name }}&quot; value=&quot;{{ values.get(f.name,&#x27;&#x27;) }}&quot; type=&quot;{{ &#x27;number&#x27; if f.type in [&#x27;number&#x27;,&#x27;integer&#x27;] else &#x27;text&#x27; }}&quot; step=&quot;{{ &#x27;1&#x27; if f.type == &#x27;integer&#x27; else &#x27;any&#x27; }}&quot;&gt;{% endif %}&lt;/label&gt;{% endfor %}
+&lt;button&gt;Отправить заявку&lt;/button&gt;&lt;/form&gt;&lt;/section&gt;</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Не запускайте незавершённую HTML/Jinja/PHP-разметку: сначала закончите весь шаблон, включая закрывающие конструкции. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-26"><p class="eyebrow"></p><h2>flask/templates/page.html · Личный список и очередь</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции flask/templates/page.html в структуре service-center. Источник: авторский демонстрационный файл demo/flask/templates/page.html из архива практики. Введите строки ниже в указанном порядке. GET-фильтр не изменяет данные. Сервер передаёт только разрешённые заявки, а шаблон отображает карточки. Ветка else цикла объясняет пустой результат.</p></section><section class="block code"><h3>Личный список и очередь</h3><pre>{% elif page == &#x27;list&#x27; %}
+&lt;section&gt;&lt;h2&gt;{{ &#x27;Очередь заявок&#x27; if user.role == &#x27;admin&#x27; else &#x27;Мои заявки&#x27; }}&lt;/h2&gt;
+&lt;form method=&quot;get&quot;&gt;&lt;label&gt;Статус&lt;select name=&quot;status&quot;&gt;&lt;option value=&quot;&quot;&gt;Все&lt;/option&gt;{% for s in [&#x27;Новая&#x27;,&#x27;В работе&#x27;,&#x27;Завершена&#x27;] %}&lt;option {% if status == s %}selected{% endif %}&gt;{{ s }}&lt;/option&gt;{% endfor %}&lt;/select&gt;&lt;/label&gt;&lt;button&gt;Применить фильтр&lt;/button&gt;&lt;/form&gt;
+{% for t in tickets %}&lt;article&gt;&lt;h3&gt;&lt;a href=&quot;/ticket/{{ t.id }}&quot;&gt;Заявка №{{ t.id }} · {{ t.equipment }}&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;{{ t.service }} · &lt;strong&gt;{{ t.status }}&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;Клиент: {{ t.full_name }} · Исполнитель: {{ t.technician or &#x27;Не назначен&#x27; }}&lt;/p&gt;&lt;/article&gt;{% else %}&lt;p&gt;Заявок по выбранным условиям нет.&lt;/p&gt;{% endfor %}&lt;/section&gt;</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Не запускайте незавершённую HTML/Jinja/PHP-разметку: сначала закончите весь шаблон, включая закрывающие конструкции. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-27"><p class="eyebrow"></p><h2>flask/templates/page.html · Карточка и история</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции flask/templates/page.html в структуре service-center. Источник: авторский демонстрационный файл demo/flask/templates/page.html из архива практики. Введите строки ниже в указанном порядке. Поля и результат отображаются всем разрешённым пользователям. Административная форма появляется только для admin и незавершённой заявки. Скрытый target не является защитой: сервер повторно проверяет роль и переход. Завершите оставшиеся endif и закрывающие HTML-теги, прежде чем открывать страницу.</p></section><section class="block code"><h3>Карточка и история</h3><pre>{% elif page == &#x27;detail&#x27; %}
+&lt;section&gt;&lt;h2&gt;Заявка №{{ ticket.id }} · {{ ticket.status }}&lt;/h2&gt;&lt;p&gt;{{ ticket.equipment }} · {{ ticket.service }}&lt;/p&gt;&lt;p&gt;{{ ticket.symptom }}&lt;/p&gt;
+&lt;dl&gt;{% for f in domain.fields %}&lt;dt&gt;{{ f.label }}&lt;/dt&gt;&lt;dd&gt;{{ details.get(f.name) or &#x27;Не указано&#x27; }}&lt;/dd&gt;{% endfor %}&lt;/dl&gt;
+&lt;p&gt;Исполнитель: {{ ticket.technician or &#x27;Не назначен&#x27; }}&lt;/p&gt;&lt;p&gt;Результат: {{ ticket.result or &#x27;Работа ещё не завершена&#x27; }}&lt;/p&gt;
+{% if user.role == &#x27;admin&#x27; and ticket.status != &#x27;Завершена&#x27; %}
+&lt;form method=&quot;post&quot;&gt;&lt;input type=&quot;hidden&quot; name=&quot;csrf&quot; value=&quot;{{ session.csrf }}&quot;&gt;
+&lt;label&gt;Исполнитель&lt;select name=&quot;technician_id&quot;&gt;&lt;option value=&quot;&quot;&gt;Назначьте исполнителя&lt;/option&gt;{% for n in technicians %}&lt;option value=&quot;{{ n.id }}&quot; {% if ticket.technician_id == n.id %}selected{% endif %}&gt;{{ n.name }}&lt;/option&gt;{% endfor %}&lt;/select&gt;&lt;/label&gt;
+&lt;input type=&quot;hidden&quot; name=&quot;status&quot; value=&quot;{{ &#x27;В работе&#x27; if ticket.status == &#x27;Новая&#x27; else &#x27;Завершена&#x27; }}&quot;&gt;
+&lt;label&gt;Описание результата&lt;textarea name=&quot;result&quot;&gt;{{ values.get(&#x27;result&#x27;,ticket.result) }}&lt;/textarea&gt;&lt;/label&gt;
+&lt;button&gt;{{ &#x27;Принять в работу&#x27; if ticket.status == &#x27;Новая&#x27; else &#x27;Завершить заявку&#x27; }}&lt;/button&gt;&lt;/form&gt;{% endif %}&lt;/section&gt;
+&lt;section&gt;&lt;h2&gt;История обработки&lt;/h2&gt;{% for h in history %}&lt;article&gt;&lt;p&gt;{{ h.changed_at }} · {{ h.full_name }}&lt;/p&gt;&lt;p&gt;{{ h.old_status or &#x27;Создание&#x27; }} → &lt;strong&gt;{{ h.new_status }}&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;{{ h.comment }}&lt;/p&gt;&lt;/article&gt;{% endfor %}&lt;/section&gt;
+{% endif %}
+&lt;footer&gt;Учебная демонстрация · версия 1.0 · отдельная учебная база данных&lt;/footer&gt;
+&lt;/main&gt;&lt;/body&gt;&lt;/html&gt;</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Не запускайте незавершённую HTML/Jinja/PHP-разметку: сначала закончите весь шаблон, включая закрывающие конструкции. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-28"><p class="eyebrow"></p><h2>flask/app.py · Создание приложения</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Создайте новый пустой файл flask/app.py в структуре service-center. Источник: авторский демонстрационный файл demo/flask/app.py из архива практики. Введите строки ниже в указанном порядке. Flask создаёт объект приложения. Секрет берётся из APP_SECRET либо генерируется при запуске учебной среды; после перезапуска без APP_SECRET прежние входы перестают действовать. Собственное имя cookie отделяет ПМ.05 от других локальных приложений. JSON загружается относительно файла, а не текущей папки терминала.</p></section><section class="block code"><h3>Создание приложения</h3><pre>import json
+import os
+import secrets
+from pathlib import Path
+import pymysql
+from flask import Flask, abort, redirect, render_template, request, session, url_for
+from werkzeug.security import check_password_hash, generate_password_hash
+from db import database, rows
+from rules import DomainPolicy, validate_registration
+
+app = Flask(__name__)
+app.secret_key = os.environ.get(&#x27;APP_SECRET&#x27;) or secrets.token_hex(32)
+app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE=&#x27;Lax&#x27;,
+                  SESSION_COOKIE_NAME=&#x27;pm05_flask&#x27;)
+domain = json.loads((Path(__file__).parent.parent / &#x27;domain.json&#x27;).read_text())
+policy = DomainPolicy(domain)
+
+</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-29"><p class="eyebrow"></p><h2>flask/app.py · Защита форм</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции flask/app.py в структуре service-center. Источник: авторский демонстрационный файл demo/flask/app.py из архива практики. Введите строки ниже в указанном порядке. Перед каждым запросом создаётся токен сессии. При POST сервер сравнивает его со значением формы. Несовпадение даёт 400 и не выполняет действие. Обновите страницу после перезапуска, чтобы получить новый токен.</p></section><section class="block code"><h3>Защита форм</h3><pre>@app.before_request
+def protect():
+    session.setdefault(&#x27;csrf&#x27;, secrets.token_hex(24))
+    if request.method == &#x27;POST&#x27; and not secrets.compare_digest(
+        session[&#x27;csrf&#x27;], request.form.get(&#x27;csrf&#x27;, &#x27;&#x27;)
+    ):
+        abort(400, &#x27;Недействительный токен формы. Обновите страницу.&#x27;)
+
+</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-30"><p class="eyebrow"></p><h2>flask/app.py · Получение пользователя</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции flask/app.py в структуре service-center. Источник: авторский демонстрационный файл demo/flask/app.py из архива практики. Введите строки ниже в указанном порядке. Сессия хранит идентификатор, роль читается из БД. require_user отвергает неавторизованный запрос и проверяет admin по серверным данным. show передаёт единый контекст шаблону и список ошибок.</p></section><section class="block code"><h3>Получение пользователя</h3><pre>def current_user():
+    found = rows(&#x27;SELECT id,login,full_name,role FROM users WHERE id=%s&#x27;,
+                 (session.get(&#x27;user_id&#x27;, 0),))
+    return found[0] if found else None
+
+
+def require_user(admin=False):
+    user = current_user()
+    if not user or (admin and user[&#x27;role&#x27;] != &#x27;admin&#x27;):
+        abort(403)
+    return user
+
+
+def show(page, **context):
+    return render_template(&#x27;page.html&#x27;, page=page, domain=domain,
+                           user=current_user(), values=request.form,
+                           errors=context.pop(&#x27;errors&#x27;, []), **context)
+
+</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-31"><p class="eyebrow"></p><h2>flask/app.py · Регистрация с уникальным логином</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции flask/app.py в структуре service-center. Источник: авторский демонстрационный файл demo/flask/app.py из архива практики. Введите строки ниже в указанном порядке. Сначала проверяются все поля. Пароль превращается в хеш перед записью. Исключение уникальности даёт понятное сообщение; корректная регистрация перенаправляет на вход.</p></section><section class="block code"><h3>Регистрация с уникальным логином</h3><pre>@app.route(&#x27;/register&#x27;, methods=[&#x27;GET&#x27;, &#x27;POST&#x27;])
+def register():
+    errors = []
+    if request.method == &#x27;POST&#x27;:
+        errors = validate_registration(request.form)
+        if not errors:
+            try:
+                with database() as connection, connection.cursor() as cursor:
+                    cursor.execute(
+                        &#x27;INSERT INTO users(login,password_hash,full_name,phone,email) &#x27;
+                        &#x27;VALUES(%s,%s,%s,%s,%s)&#x27;,
+                        (request.form[&#x27;login&#x27;], generate_password_hash(request.form[&#x27;password&#x27;]),
+                         request.form[&#x27;full_name&#x27;], request.form[&#x27;phone&#x27;], request.form[&#x27;email&#x27;]))
+                return redirect(url_for(&#x27;login&#x27;))
+            except pymysql.err.IntegrityError:
+                errors = [&#x27;Этот логин уже занят.&#x27;]
+    return show(&#x27;register&#x27;, errors=errors)
+
+</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-32"><p class="eyebrow"></p><h2>flask/app.py · Вход и выход</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции flask/app.py в структуре service-center. Источник: авторский демонстрационный файл demo/flask/app.py из архива практики. Введите строки ниже в указанном порядке. По логину находится запись, check_password_hash сравнивает пароль с хешем. При входе сессия очищается и токен обновляется. Выход — POST, очистка сессии и переход на вход.</p></section><section class="block code"><h3>Вход и выход</h3><pre>@app.route(&#x27;/login&#x27;, methods=[&#x27;GET&#x27;, &#x27;POST&#x27;])
+def login():
+    errors = []
+    if request.method == &#x27;POST&#x27;:
+        found = rows(&#x27;SELECT * FROM users WHERE login=%s&#x27;, (request.form.get(&#x27;login&#x27;,&#x27;&#x27;),))
+        if found and check_password_hash(found[0][&#x27;password_hash&#x27;], request.form.get(&#x27;password&#x27;,&#x27;&#x27;)):
+            session.clear()
+            session.update(user_id=found[0][&#x27;id&#x27;], csrf=secrets.token_hex(24))
+            return redirect(url_for(&#x27;index&#x27;))
+        errors = [&#x27;Неверный логин или пароль.&#x27;]
+    return show(&#x27;login&#x27;, errors=errors)
+
+
+@app.post(&#x27;/logout&#x27;)
+def logout():
+    session.clear()
+    return redirect(url_for(&#x27;login&#x27;))
+
+</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-33"><p class="eyebrow"></p><h2>flask/app.py · Разрешённая выборка</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции flask/app.py в структуре service-center. Источник: авторский демонстрационный файл demo/flask/app.py из архива практики. Введите строки ниже в указанном порядке. У клиента условие содержит его user_id, у администратора очередь общая. Значение фильтра допускается только из трёх статусов и передаётся SQL-параметром. f-строка включает только серверное условие из заранее заданных частей, а не ввод пользователя.</p></section><section class="block code"><h3>Разрешённая выборка</h3><pre>@app.get(&#x27;/&#x27;)
+def index():
+    if not current_user():
+        return redirect(url_for(&#x27;login&#x27;))
+    user = require_user()
+    condition = &#x27;1=1&#x27; if user[&#x27;role&#x27;] == &#x27;admin&#x27; else &#x27;t.user_id=%s&#x27;
+    args = [] if user[&#x27;role&#x27;] == &#x27;admin&#x27; else [user[&#x27;id&#x27;]]
+    status = request.args.get(&#x27;status&#x27;, &#x27;&#x27;)
+    if status in (&#x27;Новая&#x27;,&#x27;В работе&#x27;,&#x27;Завершена&#x27;):
+        condition += &#x27; AND t.status=%s&#x27;
+        args.append(status)
+    tickets = rows(&#x27;SELECT t.*,u.full_name,s.name AS service,n.name AS technician &#x27;
+                   &#x27;FROM tickets t JOIN users u ON u.id=t.user_id &#x27;
+                   &#x27;JOIN services s ON s.id=t.service_id &#x27;
+                   &#x27;LEFT JOIN technicians n ON n.id=t.technician_id &#x27;
+                   f&#x27;WHERE {condition} ORDER BY t.id DESC&#x27;, args)
+    return show(&#x27;list&#x27;, tickets=tickets, status=status)
+
+</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-34"><p class="eyebrow"></p><h2>flask/app.py · Создание заявки</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции flask/app.py в структуре service-center. Источник: авторский демонстрационный файл demo/flask/app.py из архива практики. Введите строки ниже в указанном порядке. Идентификатор услуги сверяется с активным справочником. Длины модели и симптома проверяются до записи. Объект policy проверяет предметные параметры. В одной транзакции создаются заявка и событие её создания.</p></section><section class="block code"><h3>Создание заявки</h3><pre>@app.route(&#x27;/new&#x27;, methods=[&#x27;GET&#x27;,&#x27;POST&#x27;])
+def new():
+    user = require_user()
+    services = rows(&#x27;SELECT * FROM services WHERE active=TRUE ORDER BY id&#x27;)
+    errors = []
+    if request.method == &#x27;POST&#x27;:
+        service = next((s for s in services if str(s[&#x27;id&#x27;]) == request.form.get(&#x27;service_id&#x27;)), None)
+        if not service:
+            errors.append(&#x27;Выберите действующую услугу.&#x27;)
+        if not 3 &lt;= len(request.form.get(&#x27;equipment&#x27;,&#x27;&#x27;).strip()) &lt;= 120:
+            errors.append(&#x27;Оборудование: от 3 до 120 символов.&#x27;)
+        if not 5 &lt;= len(request.form.get(&#x27;symptom&#x27;,&#x27;&#x27;).strip()) &lt;= 2000:
+            errors.append(&#x27;Описание неисправности: от 5 до 2000 символов.&#x27;)
+        details = {f[&#x27;name&#x27;]:request.form.get(f[&#x27;name&#x27;],&#x27;&#x27;) for f in domain[&#x27;fields&#x27;]}
+        errors += policy.validate({**details, &#x27;service&#x27;:service[&#x27;name&#x27;] if service else &#x27;&#x27;})
+        if not errors:
+            with database() as connection, connection.cursor() as cursor:
+                cursor.execute(&#x27;INSERT INTO tickets(user_id,service_id,equipment,symptom,parameters,result) &#x27;
+                               &#x27;VALUES(%s,%s,%s,%s,%s,%s)&#x27;,
+                               (user[&#x27;id&#x27;],service[&#x27;id&#x27;],request.form[&#x27;equipment&#x27;],request.form[&#x27;symptom&#x27;],
+                                json.dumps(details,ensure_ascii=False),&#x27;&#x27;))
+                ticket_id = cursor.lastrowid
+                cursor.execute(&#x27;INSERT INTO ticket_history(ticket_id,actor_id,new_status,comment) &#x27;
+                               &#x27;VALUES(%s,%s,%s,%s)&#x27;,(ticket_id,user[&#x27;id&#x27;],&#x27;Новая&#x27;,&#x27;Заявка создана&#x27;))
+            return redirect(url_for(&#x27;detail&#x27;,ticket_id=ticket_id))
+    return show(&#x27;new&#x27;,services=services,errors=errors)
+
+</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-35"><p class="eyebrow"></p><h2>flask/app.py · Переход статуса и карточка</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции flask/app.py в структуре service-center. Источник: авторский демонстрационный файл demo/flask/app.py из архива практики. Введите строки ниже в указанном порядке. Административный POST проверяет роль до изменения. FOR UPDATE блокирует запись на время транзакции. Ожидаемый следующий статус вычисляется из текущего статуса БД. Исполнитель должен существовать и быть активным; завершение требует результата. Карточка выбирается с условием владельца, поэтому подмена адреса не раскрывает чужую запись.</p></section><section class="block code"><h3>Переход статуса и карточка</h3><pre>@app.route(&#x27;/ticket/&lt;int:ticket_id&gt;&#x27;, methods=[&#x27;GET&#x27;,&#x27;POST&#x27;])
+def detail(ticket_id):
+    user = require_user()
+    errors = []
+    if request.method == &#x27;POST&#x27;:
+        require_user(admin=True)
+        with database() as connection, connection.cursor() as cursor:
+            cursor.execute(&#x27;SELECT * FROM tickets WHERE id=%s FOR UPDATE&#x27;,(ticket_id,))
+            ticket = cursor.fetchone()
+            if not ticket:
+                abort(404)
+            target = request.form.get(&#x27;status&#x27;,&#x27;&#x27;)
+            expected = {&#x27;Новая&#x27;:&#x27;В работе&#x27;,&#x27;В работе&#x27;:&#x27;Завершена&#x27;}.get(ticket[&#x27;status&#x27;])
+            try:
+                technician = int(request.form.get(&#x27;technician_id&#x27;,&#x27;&#x27;))
+            except ValueError:
+                technician = 0
+            cursor.execute(&#x27;SELECT id FROM technicians WHERE id=%s AND active=TRUE&#x27;,(technician or 0,))
+            if not cursor.fetchone():
+                errors.append(&#x27;Назначьте действующего исполнителя.&#x27;)
+            result = request.form.get(&#x27;result&#x27;,&#x27;&#x27;).strip()
+            if target != expected:
+                errors.append(&#x27;Недопустимый переход статуса.&#x27;)
+            if target == &#x27;Завершена&#x27; and not 5 &lt;= len(result) &lt;= 2000:
+                errors.append(&#x27;Для завершения опишите результат: от 5 до 2000 символов.&#x27;)
+            if len(result) &gt; 2000:
+                errors.append(&#x27;Результат слишком длинный.&#x27;)
+            if not errors:
+                cursor.execute(&#x27;UPDATE tickets SET status=%s,technician_id=%s,result=%s WHERE id=%s&#x27;,
+                               (target,technician,result,ticket_id))
+                cursor.execute(&#x27;INSERT INTO ticket_history(ticket_id,actor_id,old_status,new_status,comment) &#x27;
+                               &#x27;VALUES(%s,%s,%s,%s,%s)&#x27;,(ticket_id,user[&#x27;id&#x27;],ticket[&#x27;status&#x27;],target,result))
+    found = rows(&#x27;SELECT t.*,s.name AS service,n.name AS technician FROM tickets t &#x27;
+                 &#x27;JOIN services s ON s.id=t.service_id LEFT JOIN technicians n ON n.id=t.technician_id &#x27;
+                 &#x27;WHERE t.id=%s AND (%s=\&#x27;admin\&#x27; OR t.user_id=%s)&#x27;,(ticket_id,user[&#x27;role&#x27;],user[&#x27;id&#x27;]))
+    if not found:
+        abort(404)
+    history = rows(&#x27;SELECT h.*,u.full_name FROM ticket_history h JOIN users u ON u.id=h.actor_id &#x27;
+                   &#x27;WHERE ticket_id=%s ORDER BY h.id&#x27;,(ticket_id,))
+    return show(&#x27;detail&#x27;,ticket=found[0],details=json.loads(found[0][&#x27;parameters&#x27;]),history=history,
+                technicians=rows(&#x27;SELECT * FROM technicians WHERE active=TRUE&#x27;),errors=errors)
+
+</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-36"><p class="eyebrow"></p><h2>flask/app.py · Создание учебного администратора</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции flask/app.py в структуре service-center. Источник: авторский демонстрационный файл demo/flask/app.py из архива практики. Введите строки ниже в указанном порядке. Команда вызывается из терминала, а не браузера. Она записывает роль admin и хеш выбранного учебного пароля в нужную БД. Не превращайте обычную форму регистрации в выбор роли.</p></section><section class="block code"><h3>Создание учебного администратора</h3><pre>@app.cli.command(&#x27;create-admin&#x27;)
+def create_admin():
+    import getpass
+    login = input(&#x27;Логин администратора: &#x27;)
+    password = getpass.getpass(&#x27;Пароль администратора: &#x27;)
+    with database() as connection, connection.cursor() as cursor:
+        cursor.execute(&#x27;INSERT INTO users(login,password_hash,full_name,phone,email,role) &#x27;
+                       &#x27;VALUES(%s,%s,%s,%s,%s,%s)&#x27;,
+                       (login,generate_password_hash(password),&#x27;Учебный Администратор&#x27;,
+                        &#x27;8(999)123-45-67&#x27;,&#x27;admin@example.test&#x27;,&#x27;admin&#x27;))
+    print(&#x27;Администратор создан в выбранной учебной базе.&#x27;)</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-37"><p class="eyebrow"></p><h2>Запустите законченный Flask-проект</h2><div class="blocks"><section class="block text"><h3>Подключение учебной базы в PowerShell</h3><p>В терминале из flask задайте $env:DB_HOST=&quot;127.0.0.1&quot;; $env:DB_PORT=&quot;3306&quot;; $env:DB_NAME=&quot;pm05_flask&quot;; $env:DB_USER=&quot;root&quot;; $env:DB_PASSWORD=&quot;&quot;. Если учебный сервер предоставляет другую учётную запись, используйте её значения и не публикуйте пароль. Переменные действуют только в текущем терминале. На Mac/Linux перед каждой командой можно задать DB_HOST=127.0.0.1 DB_PORT=3306 DB_NAME=pm05_flask DB_USER=root DB_PASSWORD=&quot;&quot;.</p></section><section class="block text"><h3>Создайте администратора</h3><p>В том же терминале выполните .\.venv\Scripts\python.exe -m flask --app app create-admin; на Mac/Linux — .venv/bin/python -m flask --app app create-admin. Введите adminpm05 и выбранный вымышленный пароль не менее 8 символов. Команда выполняется один раз для новой базы. При повторном запуске UNIQUE не позволит создать тот же логин.</p></section><section class="block text"><h3>Откройте приложение</h3><p>Выполните .\.venv\Scripts\python.exe -m flask --app app run --port 5057; на Mac/Linux — .venv/bin/python -m flask --app app run --port 5057. Оставьте терминал работающим. В браузере откройте http://127.0.0.1:5057/register. После ввода кода страница показывает регистрацию без сообщения TemplateNotFound. При редактировании остановите сервер Ctrl+C и запустите снова. Если APP_SECRET не задан, после перезапуска снова войдите в систему.</p></section><figure class="block screenshot"><h3>Регистрация в работающем Flask-приложении</h3><img src="assets/screenshots/da43cad9dc310428.jpg" alt="Регистрация в работающем Flask-приложении"><figcaption>Реальный экран формы. Значения клиента вводятся самостоятельно; пароль не сохраняется в заполненной форме после ошибки.</figcaption></figure></div></article><article class="lesson" id="page-38"><p class="eyebrow"></p><h2>php/lib.php · Подключение PDO</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Создайте новый пустой файл php/lib.php в структуре service-center. Источник: авторский демонстрационный файл demo/php/lib.php из архива практики. Введите строки ниже в указанном порядке. db создаёт одно соединение PDO на запрос. Исключения включены, имитация подготовленных запросов выключена; запросы передают значения отдельно. query возвращает PDOStatement, fetch получает одну запись, fetchAll — список.</p></section><section class="block code"><h3>Подключение PDO</h3><pre>&lt;?php
+declare(strict_types=1);
+
+function db(): PDO {
+    static $connection = null;
+    if (!$connection) {
+        $host = getenv(&#x27;DB_HOST&#x27;) ?: &#x27;127.0.0.1&#x27;;
+        $port = getenv(&#x27;DB_PORT&#x27;) ?: &#x27;3306&#x27;;
+        $name = getenv(&#x27;DB_NAME&#x27;) ?: &#x27;pm05_php&#x27;;
+        $connection = new PDO(&quot;mysql:host=$host;port=$port;dbname=$name;charset=utf8mb4&quot;,
+            getenv(&#x27;DB_USER&#x27;) ?: &#x27;root&#x27;, getenv(&#x27;DB_PASSWORD&#x27;) ?: &#x27;&#x27;,
+            [PDO::ATTR_ERRMODE =&gt; PDO::ERRMODE_EXCEPTION,
+             PDO::ATTR_DEFAULT_FETCH_MODE =&gt; PDO::FETCH_ASSOC,
+             PDO::ATTR_EMULATE_PREPARES =&gt; false]);
+    }
+    return $connection;
+}
+
+function query(string $sql, array $args = []): PDOStatement {
+    $statement = db()-&gt;prepare($sql);
+    $statement-&gt;execute($args);
+    return $statement;
+}
+</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-39"><p class="eyebrow"></p><h2>php/lib.php · Вывод и доступ</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции php/lib.php в структуре service-center. Источник: авторский демонстрационный файл demo/php/lib.php из архива практики. Введите строки ниже в указанном порядке. e экранирует HTML-символы. fail устанавливает HTTP-статус и прекращает обработку. current_user читает роль из БД, require_user проверяет доступ, go выполняет серверное перенаправление.</p></section><section class="block code"><h3>Вывод и доступ</h3><pre>function e(mixed $value): string {
+    return htmlspecialchars((string)$value, ENT_QUOTES, &#x27;UTF-8&#x27;);
+}
+
+function fail(int $status): never {
+    http_response_code($status);
+    exit(&quot;Действие недоступно ($status)&quot;);
+}
+
+function current_user(): array|false {
+    return query(&#x27;SELECT id,login,full_name,role FROM users WHERE id=?&#x27;,
+        [$_SESSION[&#x27;user_id&#x27;] ?? 0])-&gt;fetch();
+}
+
+function require_user(bool $admin = false): array {
+    $user = current_user();
+    if (!$user || ($admin &amp;&amp; $user[&#x27;role&#x27;] !== &#x27;admin&#x27;)) fail(403);
+    return $user;
+}
+
+function go(string $page, int $id = 0): never {
+    header(&#x27;Location: index.php?page=&#x27;.$page.($id ? &#x27;&amp;id=&#x27;.$id : &#x27;&#x27;));
+    exit;
+}
+</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-40"><p class="eyebrow"></p><h2>php/lib.php · Предметная политика PHP</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции php/lib.php в структуре service-center. Источник: авторский демонстрационный файл demo/php/lib.php из архива практики. Введите строки ниже в указанном порядке. Объект DomainPolicy хранит конфигурацию fields/rules. validate проверяет перечисления, формат, числовой диапазон и условия require/expect. Строгие сравнения отличают допустимое значение от подменённого. Проверки PHP и Python имеют одинаковое назначение.</p></section><section class="block code"><h3>Предметная политика PHP</h3><pre>final class DomainPolicy {
+    public function __construct(public array $domain) {}
+
+    public function validate(array $values): array {
+        $errors = [];
+        foreach ($this-&gt;domain[&#x27;fields&#x27;] as $field) {
+            $value = trim((string)($values[$field[&#x27;name&#x27;]] ?? &#x27;&#x27;));
+            $label = $field[&#x27;label&#x27;];
+            if ($value === &#x27;&#x27;) {
+                if ($field[&#x27;required&#x27;] ?? false) $errors[] = &quot;Заполните поле «$label».&quot;;
+                continue;
+            }
+            if (mb_strlen($value) &gt; 120) $errors[] = &quot;Поле «$label» слишком длинное.&quot;;
+            if ($field[&#x27;type&#x27;] === &#x27;select&#x27; &amp;&amp; !in_array($value, $field[&#x27;choices&#x27;], true))
+                $errors[] = &quot;Выберите допустимое значение «$label».&quot;;
+            if (isset($field[&#x27;pattern&#x27;]) &amp;&amp; !preg_match(&#x27;~&#x27;.$field[&#x27;pattern&#x27;].&#x27;~u&#x27;, $value))
+                $errors[] = &quot;Проверьте формат «$label».&quot;;
+            if (in_array($field[&#x27;type&#x27;], [&#x27;number&#x27;,&#x27;integer&#x27;], true)) {
+                $number = is_numeric($value) ? (float)$value : NAN;
+                $valid = is_finite($number)
+                    &amp;&amp; ($field[&#x27;type&#x27;] !== &#x27;integer&#x27; || floor($number) === $number)
+                    &amp;&amp; $number &gt;= ($field[&#x27;min&#x27;] ?? 0)
+                    &amp;&amp; $number &lt;= ($field[&#x27;max&#x27;] ?? 100000);
+                if (!$valid) $errors[] = &quot;Проверьте число «$label».&quot;;
+            }
+        }
+        foreach ($this-&gt;domain[&#x27;rules&#x27;] ?? [] as $rule) {
+            $when = $rule[&#x27;when&#x27;];
+            if (($values[$when[&#x27;field&#x27;]] ?? &#x27;&#x27;) !== $when[&#x27;equals&#x27;]) continue;
+            if (isset($rule[&#x27;require&#x27;]) &amp;&amp; trim((string)($values[$rule[&#x27;require&#x27;]] ?? &#x27;&#x27;)) === &#x27;&#x27;)
+                $errors[] = $rule[&#x27;message&#x27;];
+            if (isset($rule[&#x27;expect&#x27;])) {
+                $expect = $rule[&#x27;expect&#x27;];
+                if (($values[$expect[&#x27;field&#x27;]] ?? &#x27;&#x27;) !== $expect[&#x27;equals&#x27;])
+                    $errors[] = $rule[&#x27;message&#x27;];
+            }
+        }
+        return $errors;
+    }
+}
+</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-41"><p class="eyebrow"></p><h2>php/lib.php · Регистрация и поля формы</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции php/lib.php в структуре service-center. Источник: авторский демонстрационный файл demo/php/lib.php из архива практики. Введите строки ниже в указанном порядке. registration_errors собирает сообщения. FILTER_VALIDATE_EMAIL проверяет адрес. csrf_input вставляет скрытый токен, input создаёт поле и восстанавливает значение после ошибки. Пароль не помещается в HTML повторно.</p></section><section class="block code"><h3>Регистрация и поля формы</h3><pre>function registration_errors(array $v): array {
+    $errors = [];
+    if (!preg_match(&#x27;/^[A-Za-z0-9]{6,40}$/D&#x27;, $v[&#x27;login&#x27;] ?? &#x27;&#x27;))
+        $errors[] = &#x27;Логин: от 6 до 40 латинских букв и цифр.&#x27;;
+    $length = mb_strlen($v[&#x27;password&#x27;] ?? &#x27;&#x27;);
+    if ($length &lt; 8 || strlen($v[&#x27;password&#x27;] ?? &#x27;&#x27;) &gt; 64) $errors[] = &#x27;Пароль: от 8 символов, не более 64 байт UTF-8.&#x27;;
+    if (!preg_match(&#x27;/^[А-Яа-яЁё ]{3,120}$/uD&#x27;, $v[&#x27;full_name&#x27;] ?? &#x27;&#x27;))
+        $errors[] = &#x27;ФИО: кириллица и пробелы.&#x27;;
+    if (!preg_match(&#x27;/^8\(\d{3}\)\d{3}-\d{2}-\d{2}$/D&#x27;, $v[&#x27;phone&#x27;] ?? &#x27;&#x27;))
+        $errors[] = &#x27;Телефон: 8(999)123-45-67.&#x27;;
+    if (!filter_var($v[&#x27;email&#x27;] ?? &#x27;&#x27;, FILTER_VALIDATE_EMAIL) || strlen($v[&#x27;email&#x27;] ?? &#x27;&#x27;) &gt; 120)
+        $errors[] = &#x27;Введите корректную электронную почту.&#x27;;
+    return $errors;
+}
+
+function csrf_input(): void {
+    echo &#x27;&lt;input type=&quot;hidden&quot; name=&quot;csrf&quot; value=&quot;&#x27;.e($_SESSION[&#x27;csrf&#x27;]).&#x27;&quot;&gt;&#x27;;
+}
+
+function input(string $name, string $label, string $type = &#x27;text&#x27;): void {
+    $value = $type === &#x27;password&#x27; ? &#x27;&#x27; : ($_POST[$name] ?? &#x27;&#x27;);
+    echo &#x27;&lt;label&gt;&#x27;.e($label).&#x27;&lt;input name=&quot;&#x27;.e($name).&#x27;&quot; type=&quot;&#x27;.e($type).
+        &#x27;&quot; value=&quot;&#x27;.e($value).&#x27;&quot; required&gt;&lt;/label&gt;&#x27;;
+}</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-42"><p class="eyebrow"></p><h2>php/style.css · Стиль PHP-проекта</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Создайте новый пустой файл php/style.css в структуре service-center. Источник: авторский демонстрационный файл demo/php/style.css из архива практики. Введите строки ниже в указанном порядке. Тот же рабочий интерфейс, что в ветке Flask. Файл размещается непосредственно в php, потому что view.php ссылается на style.css в текущем каталоге.</p></section><section class="block code"><h3>Стиль PHP-проекта</h3><pre>:root{font-family:Arial,sans-serif;color:#18252a;background:#edf2f1;line-height:1.5}
+*{box-sizing:border-box}main{max-width:1000px;margin:auto;padding:28px}
+header{border-bottom:5px solid #136653}h1{font-size:30px}h2{font-size:23px}
+nav{display:flex;gap:20px;flex-wrap:wrap;align-items:center;padding:20px 0}
+a{color:#095749}section{background:white;padding:25px;margin:18px 0;border-radius:8px}
+form{max-width:620px}nav form{margin:0}label{display:block;font-weight:bold;margin:12px 0}
+input,select,textarea{display:block;width:100%;font:inherit;padding:10px;border:1px solid #889e97;border-radius:4px}
+textarea{min-height:95px}button{background:#136653;color:white;border:0;border-radius:4px;padding:11px 20px;font:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:3px solid #d79117;outline-offset:3px}
+article{border-left:4px solid #a5c5b9;padding:4px 18px;margin:14px 0;background:#f4f8f6}
+.error{background:#fff3ed;border:2px solid #a5361a}dt{font-weight:bold}dd{margin-left:0;margin-bottom:10px}
+footer{color:#536760;margin:24px 0}@media(max-width:600px){main{padding:12px}section{padding:16px}h1{font-size:24px}}</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл и проверьте его имя и каталог. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-43"><p class="eyebrow"></p><h2>php/view.php · HTML-каркас PHP</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Создайте новый пустой файл php/view.php в структуре service-center. Источник: авторский демонстрационный файл demo/php/view.php из архива практики. Введите строки ниже в указанном порядке. Создайте view.php в php. Код PHP внутри разметки выводит значения только через e. Навигация зависит от роли. Скрытый токен формы выхода берётся из сессии.</p></section><section class="block code"><h3>HTML-каркас PHP</h3><pre>&lt;!doctype html&gt;
+&lt;html lang=&quot;ru&quot;&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;
+&lt;title&gt;&lt;?= e($domain[&#x27;title&#x27;]) ?&gt; — ПМ.05&lt;/title&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;style.css&quot;&gt;&lt;/head&gt;
+&lt;body&gt;&lt;main&gt;&lt;header&gt;&lt;p&gt;ПМ.05 · Проектирование и разработка информационных систем&lt;/p&gt;&lt;h1&gt;&lt;?= e($domain[&#x27;title&#x27;]) ?&gt;&lt;/h1&gt;&lt;/header&gt;
+&lt;nav&gt;&lt;?php if ($user): ?&gt;
+&lt;a href=&quot;index.php&quot;&gt;&lt;?= $user[&#x27;role&#x27;] === &#x27;admin&#x27; ? &#x27;Очередь заявок&#x27; : &#x27;Мои заявки&#x27; ?&gt;&lt;/a&gt;
+&lt;a href=&quot;index.php?page=new&quot;&gt;Создать заявку&lt;/a&gt;&lt;span&gt;&lt;?= e($user[&#x27;full_name&#x27;].&#x27; · &#x27;.$user[&#x27;role&#x27;]) ?&gt;&lt;/span&gt;
+&lt;form action=&quot;index.php?page=logout&quot; method=&quot;post&quot;&gt;&lt;?php csrf_input(); ?&gt;&lt;button&gt;Выйти&lt;/button&gt;&lt;/form&gt;
+&lt;?php else: ?&gt;&lt;a href=&quot;index.php?page=login&quot;&gt;Вход&lt;/a&gt;&lt;a href=&quot;index.php?page=register&quot;&gt;Регистрация&lt;/a&gt;&lt;?php endif ?&gt;&lt;/nav&gt;</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Не запускайте незавершённую HTML/Jinja/PHP-разметку: сначала закончите весь шаблон, включая закрывающие конструкции. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-44"><p class="eyebrow"></p><h2>php/view.php · Сообщения, вход и регистрация</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции php/view.php в структуре service-center. Источник: авторский демонстрационный файл demo/php/view.php из архива практики. Введите строки ниже в указанном порядке. Ошибки выводятся перед формой. Кнопки направляют на page=login или page=register. Поля используют те же имена, что обработчик index.php.</p></section><section class="block code"><h3>Сообщения, вход и регистрация</h3><pre>&lt;?php if ($errors): ?&gt;&lt;section class=&quot;error&quot; role=&quot;alert&quot;&gt;&lt;h2&gt;Проверьте введённые данные&lt;/h2&gt;&lt;ul&gt;&lt;?php foreach ($errors as $error): ?&gt;&lt;li&gt;&lt;?= e($error) ?&gt;&lt;/li&gt;&lt;?php endforeach ?&gt;&lt;/ul&gt;&lt;/section&gt;&lt;?php endif ?&gt;
+&lt;?php if (in_array($page,[&#x27;login&#x27;,&#x27;register&#x27;],true)): ?&gt;
+&lt;section&gt;&lt;h2&gt;&lt;?= $page === &#x27;register&#x27; ? &#x27;Регистрация клиента&#x27; : &#x27;Вход в систему&#x27; ?&gt;&lt;/h2&gt;
+&lt;form method=&quot;post&quot;&gt;&lt;?php csrf_input(); input(&#x27;login&#x27;,&#x27;Логин&#x27;); input(&#x27;password&#x27;,&#x27;Пароль&#x27;,&#x27;password&#x27;); ?&gt;
+&lt;?php if ($page === &#x27;register&#x27;): input(&#x27;full_name&#x27;,&#x27;ФИО&#x27;); input(&#x27;phone&#x27;,&#x27;Телефон: 8(999)123-45-67&#x27;); input(&#x27;email&#x27;,&#x27;Электронная почта&#x27;,&#x27;email&#x27;); endif ?&gt;
+&lt;button&gt;&lt;?= $page === &#x27;register&#x27; ? &#x27;Создать пользователя&#x27; : &#x27;Войти&#x27; ?&gt;&lt;/button&gt;&lt;/form&gt;
+&lt;p&gt;&lt;a href=&quot;index.php?page=&lt;?= $page === &#x27;register&#x27; ? &#x27;login&#x27; : &#x27;register&#x27; ?&gt;&quot;&gt;&lt;?= $page === &#x27;register&#x27; ? &#x27;Уже зарегистрированы? Вход&#x27; : &#x27;Ещё не зарегистрированы? Регистрация&#x27; ?&gt;&lt;/a&gt;&lt;/p&gt;&lt;/section&gt;</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Не запускайте незавершённую HTML/Jinja/PHP-разметку: сначала закончите весь шаблон, включая закрывающие конструкции. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-45"><p class="eyebrow"></p><h2>php/view.php · Предметная форма PHP</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции php/view.php в структуре service-center. Источник: авторский демонстрационный файл demo/php/view.php из архива практики. Введите строки ниже в указанном порядке. Список услуг приходит из БД, а дополнительные поля — из JSON. Выбранные значения сохраняются при ошибке. Данные выводятся с HTML-экранированием.</p></section><section class="block code"><h3>Предметная форма PHP</h3><pre>&lt;?php elseif ($page === &#x27;new&#x27;): ?&gt;
+&lt;section&gt;&lt;h2&gt;Новая заявка&lt;/h2&gt;&lt;form method=&quot;post&quot;&gt;&lt;?php csrf_input(); input(&#x27;equipment&#x27;,&#x27;Оборудование и модель&#x27;); ?&gt;
+&lt;label&gt;Неисправность&lt;textarea name=&quot;symptom&quot; required&gt;&lt;?= e($_POST[&#x27;symptom&#x27;] ?? &#x27;&#x27;) ?&gt;&lt;/textarea&gt;&lt;/label&gt;
+&lt;label&gt;Услуга&lt;select name=&quot;service_id&quot; required&gt;&lt;option value=&quot;&quot;&gt;Выберите услугу&lt;/option&gt;&lt;?php foreach ($services as $s): ?&gt;&lt;option value=&quot;&lt;?= $s[&#x27;id&#x27;] ?&gt;&quot; &lt;?= (string)$s[&#x27;id&#x27;] === ($_POST[&#x27;service_id&#x27;] ?? &#x27;&#x27;) ? &#x27;selected&#x27; : &#x27;&#x27; ?&gt;&gt;&lt;?= e($s[&#x27;name&#x27;]) ?&gt;&lt;/option&gt;&lt;?php endforeach ?&gt;&lt;/select&gt;&lt;/label&gt;
+&lt;?php foreach ($domain[&#x27;fields&#x27;] as $f): ?&gt;&lt;label&gt;&lt;?= e($f[&#x27;label&#x27;]) ?&gt;
+&lt;?php if ($f[&#x27;type&#x27;] === &#x27;select&#x27;): ?&gt;&lt;select name=&quot;&lt;?= e($f[&#x27;name&#x27;]) ?&gt;&quot;&gt;&lt;option value=&quot;&quot;&gt;Выберите значение&lt;/option&gt;&lt;?php foreach ($f[&#x27;choices&#x27;] as $choice): ?&gt;&lt;option &lt;?= ($_POST[$f[&#x27;name&#x27;]] ?? &#x27;&#x27;) === $choice ? &#x27;selected&#x27; : &#x27;&#x27; ?&gt;&gt;&lt;?= e($choice) ?&gt;&lt;/option&gt;&lt;?php endforeach ?&gt;&lt;/select&gt;
+&lt;?php else: ?&gt;&lt;input name=&quot;&lt;?= e($f[&#x27;name&#x27;]) ?&gt;&quot; value=&quot;&lt;?= e($_POST[$f[&#x27;name&#x27;]] ?? &#x27;&#x27;) ?&gt;&quot; type=&quot;&lt;?= in_array($f[&#x27;type&#x27;],[&#x27;integer&#x27;,&#x27;number&#x27;],true) ? &#x27;number&#x27; : &#x27;text&#x27; ?&gt;&quot; step=&quot;&lt;?= $f[&#x27;type&#x27;] === &#x27;integer&#x27; ? &#x27;1&#x27; : &#x27;any&#x27; ?&gt;&quot;&gt;&lt;?php endif ?&gt;&lt;/label&gt;&lt;?php endforeach ?&gt;
+&lt;button&gt;Отправить заявку&lt;/button&gt;&lt;/form&gt;&lt;/section&gt;</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Не запускайте незавершённую HTML/Jinja/PHP-разметку: сначала закончите весь шаблон, включая закрывающие конструкции. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-46"><p class="eyebrow"></p><h2>php/view.php · Список заявок PHP</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции php/view.php в структуре service-center. Источник: авторский демонстрационный файл demo/php/view.php из архива практики. Введите строки ниже в указанном порядке. GET-фильтр содержит page=list, чтобы обработчик открыл нужную страницу. Карточки ссылаются на идентификатор заявки, который сервер проверит отдельно.</p></section><section class="block code"><h3>Список заявок PHP</h3><pre>&lt;?php elseif ($page === &#x27;list&#x27;): ?&gt;
+&lt;section&gt;&lt;h2&gt;&lt;?= $user[&#x27;role&#x27;] === &#x27;admin&#x27; ? &#x27;Очередь заявок&#x27; : &#x27;Мои заявки&#x27; ?&gt;&lt;/h2&gt;
+&lt;form method=&quot;get&quot;&gt;&lt;input type=&quot;hidden&quot; name=&quot;page&quot; value=&quot;list&quot;&gt;&lt;label&gt;Статус&lt;select name=&quot;status&quot;&gt;&lt;option value=&quot;&quot;&gt;Все&lt;/option&gt;&lt;?php foreach ([&#x27;Новая&#x27;,&#x27;В работе&#x27;,&#x27;Завершена&#x27;] as $s): ?&gt;&lt;option &lt;?= $status === $s ? &#x27;selected&#x27; : &#x27;&#x27; ?&gt;&gt;&lt;?= e($s) ?&gt;&lt;/option&gt;&lt;?php endforeach ?&gt;&lt;/select&gt;&lt;/label&gt;&lt;button&gt;Применить фильтр&lt;/button&gt;&lt;/form&gt;
+&lt;?php foreach ($tickets as $t): ?&gt;&lt;article&gt;&lt;h3&gt;&lt;a href=&quot;index.php?page=ticket&amp;amp;id=&lt;?= $t[&#x27;id&#x27;] ?&gt;&quot;&gt;Заявка №&lt;?= $t[&#x27;id&#x27;] ?&gt; · &lt;?= e($t[&#x27;equipment&#x27;]) ?&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;&lt;?= e($t[&#x27;service&#x27;]) ?&gt; · &lt;strong&gt;&lt;?= e($t[&#x27;status&#x27;]) ?&gt;&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;Клиент: &lt;?= e($t[&#x27;full_name&#x27;]) ?&gt; · Исполнитель: &lt;?= e($t[&#x27;technician&#x27;] ?: &#x27;Не назначен&#x27;) ?&gt;&lt;/p&gt;&lt;/article&gt;&lt;?php endforeach ?&gt;
+&lt;?php if (!$tickets): ?&gt;&lt;p&gt;Заявок по выбранным условиям нет.&lt;/p&gt;&lt;?php endif ?&gt;&lt;/section&gt;</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Не запускайте незавершённую HTML/Jinja/PHP-разметку: сначала закончите весь шаблон, включая закрывающие конструкции. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-47"><p class="eyebrow"></p><h2>php/view.php · Карточка и административная форма PHP</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции php/view.php в структуре service-center. Источник: авторский демонстрационный файл demo/php/view.php из архива практики. Введите строки ниже в указанном порядке. Результат и история отображаются после разрешённой выборки. Администратор выбирает мастера и следующий статус. Закройте все условия и HTML-теги до запуска; шаблон требует переменные, подготовленные index.php.</p></section><section class="block code"><h3>Карточка и административная форма PHP</h3><pre>&lt;?php elseif ($page === &#x27;ticket&#x27;): ?&gt;
+&lt;section&gt;&lt;h2&gt;Заявка №&lt;?= $ticket[&#x27;id&#x27;] ?&gt; · &lt;?= e($ticket[&#x27;status&#x27;]) ?&gt;&lt;/h2&gt;&lt;p&gt;&lt;?= e($ticket[&#x27;equipment&#x27;].&#x27; · &#x27;.$ticket[&#x27;service&#x27;]) ?&gt;&lt;/p&gt;&lt;p&gt;&lt;?= e($ticket[&#x27;symptom&#x27;]) ?&gt;&lt;/p&gt;
+&lt;dl&gt;&lt;?php foreach ($domain[&#x27;fields&#x27;] as $f): ?&gt;&lt;dt&gt;&lt;?= e($f[&#x27;label&#x27;]) ?&gt;&lt;/dt&gt;&lt;dd&gt;&lt;?= e($details[$f[&#x27;name&#x27;]] ?: &#x27;Не указано&#x27;) ?&gt;&lt;/dd&gt;&lt;?php endforeach ?&gt;&lt;/dl&gt;
+&lt;p&gt;Исполнитель: &lt;?= e($ticket[&#x27;technician&#x27;] ?: &#x27;Не назначен&#x27;) ?&gt;&lt;/p&gt;&lt;p&gt;Результат: &lt;?= e($ticket[&#x27;result&#x27;] ?: &#x27;Работа ещё не завершена&#x27;) ?&gt;&lt;/p&gt;
+&lt;?php if ($user[&#x27;role&#x27;] === &#x27;admin&#x27; &amp;&amp; $ticket[&#x27;status&#x27;] !== &#x27;Завершена&#x27;): ?&gt;
+&lt;form method=&quot;post&quot;&gt;&lt;?php csrf_input(); ?&gt;&lt;label&gt;Исполнитель&lt;select name=&quot;technician_id&quot;&gt;&lt;option value=&quot;&quot;&gt;Назначьте исполнителя&lt;/option&gt;&lt;?php foreach ($technicians as $n): ?&gt;&lt;option value=&quot;&lt;?= $n[&#x27;id&#x27;] ?&gt;&quot; &lt;?= $ticket[&#x27;technician_id&#x27;] === $n[&#x27;id&#x27;] ? &#x27;selected&#x27; : &#x27;&#x27; ?&gt;&gt;&lt;?= e($n[&#x27;name&#x27;]) ?&gt;&lt;/option&gt;&lt;?php endforeach ?&gt;&lt;/select&gt;&lt;/label&gt;
+&lt;input type=&quot;hidden&quot; name=&quot;status&quot; value=&quot;&lt;?= $ticket[&#x27;status&#x27;] === &#x27;Новая&#x27; ? &#x27;В работе&#x27; : &#x27;Завершена&#x27; ?&gt;&quot;&gt;
+&lt;label&gt;Описание результата&lt;textarea name=&quot;result&quot;&gt;&lt;?= e($_POST[&#x27;result&#x27;] ?? $ticket[&#x27;result&#x27;]) ?&gt;&lt;/textarea&gt;&lt;/label&gt;
+&lt;button&gt;&lt;?= $ticket[&#x27;status&#x27;] === &#x27;Новая&#x27; ? &#x27;Принять в работу&#x27; : &#x27;Завершить заявку&#x27; ?&gt;&lt;/button&gt;&lt;/form&gt;&lt;?php endif ?&gt;&lt;/section&gt;
+&lt;section&gt;&lt;h2&gt;История обработки&lt;/h2&gt;&lt;?php foreach ($history as $h): ?&gt;&lt;article&gt;&lt;p&gt;&lt;?= e($h[&#x27;changed_at&#x27;].&#x27; · &#x27;.$h[&#x27;full_name&#x27;]) ?&gt;&lt;/p&gt;&lt;p&gt;&lt;?= e($h[&#x27;old_status&#x27;] ?: &#x27;Создание&#x27;) ?&gt; → &lt;strong&gt;&lt;?= e($h[&#x27;new_status&#x27;]) ?&gt;&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;&lt;?= e($h[&#x27;comment&#x27;]) ?&gt;&lt;/p&gt;&lt;/article&gt;&lt;?php endforeach ?&gt;&lt;/section&gt;
+&lt;?php endif ?&gt;
+&lt;footer&gt;Учебная демонстрация · версия 1.0 · отдельная учебная база данных&lt;/footer&gt;&lt;/main&gt;&lt;/body&gt;&lt;/html&gt;</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Не запускайте незавершённую HTML/Jinja/PHP-разметку: сначала закончите весь шаблон, включая закрывающие конструкции. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-48"><p class="eyebrow"></p><h2>php/index.php · Входной файл и сессия</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Создайте новый пустой файл php/index.php в структуре service-center. Источник: авторский демонстрационный файл demo/php/index.php из архива практики. Введите строки ниже в указанном порядке. index.php подключает библиотеку, задаёт отдельное имя сессии и проверяет токен каждого POST. page выбирает страницу; список разрешённых страниц проверяется перед шаблоном. DomainPolicy создаётся из общего JSON.</p></section><section class="block code"><h3>Входной файл и сессия</h3><pre>&lt;?php
+declare(strict_types=1);
+require __DIR__.&#x27;/lib.php&#x27;;
+session_name(&#x27;pm05_php&#x27;);
+session_start([&#x27;cookie_httponly&#x27;=&gt;true, &#x27;cookie_samesite&#x27;=&gt;&#x27;Lax&#x27;]);
+$_SESSION[&#x27;csrf&#x27;] ??= bin2hex(random_bytes(24));
+$post = $_SERVER[&#x27;REQUEST_METHOD&#x27;] === &#x27;POST&#x27;;
+if ($post &amp;&amp; !hash_equals($_SESSION[&#x27;csrf&#x27;], (string)($_POST[&#x27;csrf&#x27;] ?? &#x27;&#x27;))) fail(400);
+$domain = json_decode(file_get_contents(__DIR__.&#x27;/../domain.json&#x27;), true, flags: JSON_THROW_ON_ERROR);
+$policy = new DomainPolicy($domain);
+$page = $_GET[&#x27;page&#x27;] ?? &#x27;list&#x27;;
+$errors = [];
+$user = current_user();
+</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-49"><p class="eyebrow"></p><h2>php/index.php · Регистрация PHP</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции php/index.php в структуре service-center. Источник: авторский демонстрационный файл demo/php/index.php из архива практики. Введите строки ниже в указанном порядке. INSERT выполняется после проверки полей. password_hash создаёт хеш. Ошибка уникального логина обрабатывается, другие ошибки БД не маскируются под занятый логин.</p></section><section class="block code"><h3>Регистрация PHP</h3><pre>if ($page === &#x27;register&#x27; &amp;&amp; $post) {
+    $errors = registration_errors($_POST);
+    if (!$errors) {
+        try {
+            query(&#x27;INSERT INTO users(login,password_hash,full_name,phone,email) VALUES(?,?,?,?,?)&#x27;,
+                [$_POST[&#x27;login&#x27;],password_hash($_POST[&#x27;password&#x27;],PASSWORD_DEFAULT),
+                 $_POST[&#x27;full_name&#x27;],$_POST[&#x27;phone&#x27;],$_POST[&#x27;email&#x27;]]);
+            go(&#x27;login&#x27;);
+        } catch (PDOException $ex) {
+            if ($ex-&gt;getCode() !== &#x27;23000&#x27;) throw $ex;
+            $errors[] = &#x27;Этот логин уже занят.&#x27;;
+        }
+    }
+}</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-50"><p class="eyebrow"></p><h2>php/index.php · Вход, выход и обязательная авторизация</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции php/index.php в структуре service-center. Источник: авторский демонстрационный файл demo/php/index.php из архива практики. Введите строки ниже в указанном порядке. password_verify проверяет хеш. session_regenerate_id заменяет идентификатор после входа. Выход уничтожает сессию и разрешён только POST. Все страницы кроме регистрации и входа требуют пользователя.</p></section><section class="block code"><h3>Вход, выход и обязательная авторизация</h3><pre>if ($page === &#x27;login&#x27; &amp;&amp; $post) {
+    $found = query(&#x27;SELECT * FROM users WHERE login=?&#x27;, [$_POST[&#x27;login&#x27;] ?? &#x27;&#x27;])-&gt;fetch();
+    if ($found &amp;&amp; password_verify($_POST[&#x27;password&#x27;] ?? &#x27;&#x27;, $found[&#x27;password_hash&#x27;])) {
+        session_regenerate_id(true);
+        $_SESSION = [&#x27;user_id&#x27;=&gt;$found[&#x27;id&#x27;],&#x27;csrf&#x27;=&gt;bin2hex(random_bytes(24))];
+        go(&#x27;list&#x27;);
+    }
+    $errors[] = &#x27;Неверный логин или пароль.&#x27;;
+}
+if ($page === &#x27;logout&#x27;) {
+    if (!$post) fail(405);
+    $_SESSION = [];
+    session_destroy();
+    go(&#x27;login&#x27;);
+}
+if (!in_array($page, [&#x27;login&#x27;,&#x27;register&#x27;], true)) {
+    if (!$user) go(&#x27;login&#x27;);
+    $user = require_user();
+}
+</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-51"><p class="eyebrow"></p><h2>php/index.php · Запись заявки PHP</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции php/index.php в структуре service-center. Источник: авторский демонстрационный файл demo/php/index.php из архива практики. Введите строки ниже в указанном порядке. Активная услуга находится в справочнике, дополнительные параметры проверяет объект policy. Транзакция сохраняет заявку и первую историю вместе. Любое исключение откатывает обе записи.</p></section><section class="block code"><h3>Запись заявки PHP</h3><pre>if ($page === &#x27;new&#x27;) {
+    $services = query(&#x27;SELECT * FROM services WHERE active=TRUE ORDER BY id&#x27;)-&gt;fetchAll();
+    if ($post) {
+        $service = null;
+        foreach ($services as $s) if ((string)$s[&#x27;id&#x27;] === ($_POST[&#x27;service_id&#x27;] ?? &#x27;&#x27;)) $service = $s;
+        if (!$service) $errors[] = &#x27;Выберите действующую услугу.&#x27;;
+        $length = mb_strlen(trim($_POST[&#x27;equipment&#x27;] ?? &#x27;&#x27;));
+        if ($length &lt; 3 || $length &gt; 120) $errors[] = &#x27;Оборудование: от 3 до 120 символов.&#x27;;
+        $length = mb_strlen(trim($_POST[&#x27;symptom&#x27;] ?? &#x27;&#x27;));
+        if ($length &lt; 5 || $length &gt; 2000) $errors[] = &#x27;Описание неисправности: от 5 до 2000 символов.&#x27;;
+        $details = [];
+        foreach ($domain[&#x27;fields&#x27;] as $f) $details[$f[&#x27;name&#x27;]] = $_POST[$f[&#x27;name&#x27;]] ?? &#x27;&#x27;;
+        $errors = array_merge($errors, $policy-&gt;validate($details + [&#x27;service&#x27;=&gt;$service[&#x27;name&#x27;] ?? &#x27;&#x27;]));
+        if (!$errors) {
+            db()-&gt;beginTransaction();
+            try {
+                query(&#x27;INSERT INTO tickets(user_id,service_id,equipment,symptom,parameters,result) VALUES(?,?,?,?,?,?)&#x27;,
+                    [$user[&#x27;id&#x27;],$service[&#x27;id&#x27;],$_POST[&#x27;equipment&#x27;],$_POST[&#x27;symptom&#x27;],
+                     json_encode($details,JSON_UNESCAPED_UNICODE),&#x27;&#x27;]);
+                $id = (int)db()-&gt;lastInsertId();
+                query(&#x27;INSERT INTO ticket_history(ticket_id,actor_id,new_status,comment) VALUES(?,?,?,?)&#x27;,
+                    [$id,$user[&#x27;id&#x27;],&#x27;Новая&#x27;,&#x27;Заявка создана&#x27;]);
+                db()-&gt;commit();
+                go(&#x27;ticket&#x27;, $id);
+            } catch (Throwable $ex) { db()-&gt;rollBack(); throw $ex; }
+        }
+    }
+}
+</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-52"><p class="eyebrow"></p><h2>php/index.php · Административное изменение PHP</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции php/index.php в структуре service-center. Источник: авторский демонстрационный файл demo/php/index.php из архива практики. Введите строки ниже в указанном порядке. FOR UPDATE и серверная карта переходов предотвращают несогласованное изменение. Проверяется исполнитель и результат. Разрешённая карточка выбирается с условием роли/владельца; отсутствующая или чужая запись даёт 404.</p></section><section class="block code"><h3>Административное изменение PHP</h3><pre>if ($page === &#x27;ticket&#x27;) {
+    $id = (int)($_GET[&#x27;id&#x27;] ?? 0);
+    if ($post) {
+        require_user(true);
+        db()-&gt;beginTransaction();
+        try {
+            $ticket = query(&#x27;SELECT * FROM tickets WHERE id=? FOR UPDATE&#x27;, [$id])-&gt;fetch();
+            if (!$ticket) { db()-&gt;rollBack(); fail(404); }
+            $target = $_POST[&#x27;status&#x27;] ?? &#x27;&#x27;;
+            $expected = [&#x27;Новая&#x27;=&gt;&#x27;В работе&#x27;,&#x27;В работе&#x27;=&gt;&#x27;Завершена&#x27;][$ticket[&#x27;status&#x27;]] ?? null;
+            $technician = (int)($_POST[&#x27;technician_id&#x27;] ?? 0);
+            if (!query(&#x27;SELECT id FROM technicians WHERE id=? AND active=TRUE&#x27;, [$technician])-&gt;fetch())
+                $errors[] = &#x27;Назначьте действующего исполнителя.&#x27;;
+            if ($target !== $expected) $errors[] = &#x27;Недопустимый переход статуса.&#x27;;
+            $result = trim($_POST[&#x27;result&#x27;] ?? &#x27;&#x27;);
+            $length = mb_strlen($result);
+            if ($target === &#x27;Завершена&#x27; &amp;&amp; ($length &lt; 5 || $length &gt; 2000))
+                $errors[] = &#x27;Для завершения опишите результат: от 5 до 2000 символов.&#x27;;
+            if ($length &gt; 2000) $errors[] = &#x27;Результат слишком длинный.&#x27;;
+            if (!$errors) {
+                query(&#x27;UPDATE tickets SET status=?,technician_id=?,result=? WHERE id=?&#x27;,
+                    [$target,$technician,$result,$id]);
+                query(&#x27;INSERT INTO ticket_history(ticket_id,actor_id,old_status,new_status,comment) VALUES(?,?,?,?,?)&#x27;,
+                    [$id,$user[&#x27;id&#x27;],$ticket[&#x27;status&#x27;],$target,$result]);
+            }
+            db()-&gt;commit();
+        } catch (Throwable $ex) { db()-&gt;rollBack(); throw $ex; }
+    }
+    $ticket = query(&quot;SELECT t.*,s.name AS service,n.name AS technician FROM tickets t
+        JOIN services s ON s.id=t.service_id LEFT JOIN technicians n ON n.id=t.technician_id
+        WHERE t.id=? AND (?=&#x27;admin&#x27; OR t.user_id=?)&quot;, [$id,$user[&#x27;role&#x27;],$user[&#x27;id&#x27;]])-&gt;fetch();
+    if (!$ticket) fail(404);
+    $details = json_decode($ticket[&#x27;parameters&#x27;], true, flags:JSON_THROW_ON_ERROR);
+    $history = query(&#x27;SELECT h.*,u.full_name FROM ticket_history h JOIN users u ON u.id=h.actor_id WHERE ticket_id=? ORDER BY h.id&#x27;, [$id])-&gt;fetchAll();
+    $technicians = query(&#x27;SELECT * FROM technicians WHERE active=TRUE&#x27;)-&gt;fetchAll();
+}
+</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-53"><p class="eyebrow"></p><h2>php/index.php · Очередь и подключение шаблона</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Вставьте продолжение в конец файла после предыдущей законченной порции php/index.php в структуре service-center. Источник: авторский демонстрационный файл demo/php/index.php из архива практики. Введите строки ниже в указанном порядке. Состав SQL-условия выбирается сервером. Пользовательские значения идут только в массив args. После выборки require view.php передаёт подготовленные переменные в разметку.</p></section><section class="block code"><h3>Очередь и подключение шаблона</h3><pre>if ($page === &#x27;list&#x27;) {
+    $condition = $user[&#x27;role&#x27;] === &#x27;admin&#x27; ? &#x27;1=1&#x27; : &#x27;t.user_id=?&#x27;;
+    $args = $user[&#x27;role&#x27;] === &#x27;admin&#x27; ? [] : [$user[&#x27;id&#x27;]];
+    $status = $_GET[&#x27;status&#x27;] ?? &#x27;&#x27;;
+    if (in_array($status,[&#x27;Новая&#x27;,&#x27;В работе&#x27;,&#x27;Завершена&#x27;],true)) { $condition .= &#x27; AND t.status=?&#x27;; $args[] = $status; }
+    $tickets = query(&#x27;SELECT t.*,u.full_name,s.name AS service,n.name AS technician FROM tickets t
+        JOIN users u ON u.id=t.user_id JOIN services s ON s.id=t.service_id
+        LEFT JOIN technicians n ON n.id=t.technician_id WHERE &#x27;.$condition.&#x27; ORDER BY t.id DESC&#x27;, $args)-&gt;fetchAll();
+}
+if (!in_array($page,[&#x27;login&#x27;,&#x27;register&#x27;,&#x27;new&#x27;,&#x27;ticket&#x27;,&#x27;list&#x27;],true)) fail(404);
+require __DIR__.&#x27;/view.php&#x27;;</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-54"><p class="eyebrow"></p><h2>php/create-admin.php · Учебный администратор PHP</h2><div class="blocks"><section class="block text"><h3>Где ввести код</h3><p>Создайте новый пустой файл php/create-admin.php в структуре service-center. Источник: авторский демонстрационный файл demo/php/create-admin.php из архива практики. Введите строки ниже в указанном порядке. Этот скрипт разрешён только CLI. Ввод читается через STDIN, поэтому модуль readline не нужен. Пароль вводится видимо: используйте только вымышленный учебный пароль. Скрипт создаёт admin в выбранной базе, не меняя обычную регистрацию.</p></section><section class="block code"><h3>Учебный администратор PHP</h3><pre>&lt;?php
+declare(strict_types=1);
+require __DIR__.&#x27;/lib.php&#x27;;
+if (PHP_SAPI !== &#x27;cli&#x27;) { http_response_code(403); exit; }
+echo &#x27;Логин администратора: &#x27;;
+$login = trim(fgets(STDIN));
+echo &#x27;Учебный пароль (ввод отображается): &#x27;;
+$password = trim(fgets(STDIN));
+if (!preg_match(&#x27;/^[A-Za-z0-9]{6,40}$/D&#x27;, $login) || strlen($password) &lt; 8) {
+    exit(&quot;Логин не менее 6 латинских символов, пароль не менее 8.\n&quot;);
+}
+query(&#x27;INSERT INTO users(login,password_hash,full_name,phone,email,role) VALUES(?,?,?,?,?,?)&#x27;,
+    [$login,password_hash($password,PASSWORD_DEFAULT),&#x27;Учебный Администратор&#x27;,
+     &#x27;8(999)123-45-67&#x27;,&#x27;admin@example.test&#x27;,&#x27;admin&#x27;]);
+echo &quot;Администратор создан в выбранной учебной базе.\n&quot;;</pre></section><section class="block text"><h3>Проверка законченного изменения</h3><p>Сохраните файл. Для Python-модуля проверьте синтаксис командой python -m py_compile ИМЯ_ФАЙЛА, для PHP — php -l ИМЯ_ФАЙЛА; используйте интерпретатор своего проекта. Если обнаружена ошибка, сравните участок с этим блоком; исправьте причину и повторите ту же проверку. Не переходите к новой функции при ошибке текущей.</p></section></div></article><article class="lesson" id="page-55"><p class="eyebrow"></p><h2>Запустите законченный PHP-проект</h2><div class="blocks"><section class="block text"><h3>Среда CLI и БД</h3><p>В PowerShell из php задайте $env:DB_HOST=&quot;127.0.0.1&quot;; $env:DB_PORT=&quot;3306&quot;; $env:DB_NAME=&quot;pm05_php&quot;; $env:DB_USER=&quot;root&quot;; $env:DB_PASSWORD=&quot;&quot;. Используйте реквизиты своей учебной БД. Команды C:\xampp\php\php.exe -m и C:\xampp\php\php.exe -v подтверждают PHP и модули. В macOS/Linux задавайте DB_NAME=pm05_php DB_PORT=3306 перед каждой командой php. Схема и JSON остаются на уровень выше php.</p></section><section class="block text"><h3>Учебная административная запись</h3><p>Выполните C:\xampp\php\php.exe create-admin.php. Введите adminpm05 и вымышленный учебный пароль не менее 8 символов. Он отображается при вводе. Этот скрипт создаёт администратора только в выбранной БД; из браузера он закрыт.</p></section><section class="block text"><h3>Запуск учебного сервера PHP</h3><p>Чтобы окружение CLI использовало ваши переменные, выполните C:\xampp\php\php.exe -S 127.0.0.1:8057 из папки php. В браузере откройте http://127.0.0.1:8057/index.php?page=register. XAMPP обеспечивает PHP и MySQL, а встроенный сервер используется для воспроизводимого учебного запуска. Для штатного Apache переменные должны быть заданы в его окружении; не переносите туда локальные секреты из отчёта. Встроенный сервер не предназначен для внешней эксплуатации.</p></section><section class="block text"><h3>Что подтверждает первая страница</h3><p>Загрузка index.php подтверждает синтаксис, доступность domain.json, PDO и подключение к users. Ошибка Unknown database означает неверное DB_NAME либо несозданную базу; Access denied — неправильные реквизиты; could not find driver — отсутствие pdo_mysql. Сначала устраните указанную причину, затем повторите открытие, а не меняйте код всех функций сразу.</p></section></div></article><article class="lesson" id="page-56"><p class="eyebrow"></p><h2>Выполните пользовательский сценарий</h2><div class="blocks"><section class="block text"><h3>Регистрация и вход</h3><p>Нажмите «Регистрация». Введите client01, вымышленный пароль не менее 8 символов, Учебный Клиент, 8(999)123-45-67 и client@example.test. После «Создать пользователя» откроется вход. Неправильный телефон должен дать серверное сообщение. Повторите регистрацию с тем же логином: запись не дублируется. Войдите корректно, затем убедитесь, что неправильный пароль не открывает кабинет. Причина отказа находится в validate_registration или проверке хеша, а не в цвете кнопки.</p></section><section class="block text"><h3>Воспроизведите предметное правило</h3><p>Нажмите «Создать заявку». Введите Учебный ноутбук Модель А, описание неисправности, EDU-105, выберите «Диагностика питания». Оставьте поле блока питания без ответа и нажмите «Отправить заявку». Ожидайте сообщение, отсутствие новой записи и сохранение других значений. Это доказывает проверку require на сервере. Теперь выберите «Да» и отправьте вновь. Заявка открывается со статусом «Новая» и записью «Заявка создана».</p></section><figure class="block screenshot"><h3>Отказ при отсутствии условно обязательного ответа</h3><img src="assets/screenshots/e8ebfa1fff58cceb.jpg" alt="Отказ при отсутствии условно обязательного ответа"><figcaption>Реальный результат Flask: сообщение объясняет причину, модель, симптом и серийный номер сохранены в форме.</figcaption></figure><figure class="block screenshot"><h3>То же правило в PHP</h3><img src="assets/screenshots/fa924f679f7b0885.jpg" alt="То же правило в PHP"><figcaption>Реальный результат PHP: форма отвергнута до записи в БД. Ответ «Нет» также допустим; обязательность ответа не означает обязательность наличия блока питания.</figcaption></figure></div></article><article class="lesson" id="page-57"><p class="eyebrow"></p><h2>Выполните административный сценарий</h2><div class="blocks"><section class="block text"><h3>Назначение и проверка результата</h3><p>Нажмите «Выйти», войдите как adminpm05 и откройте заявку из очереди. Выберите «Мастер учебного сервиса», нажмите «Принять в работу». Статус становится «В работе», история содержит автора перехода. Попытайтесь завершить без результата: получите сообщение, статус и история остаются прежними. Введите «Восстановлен контакт разъёма, ноутбук включается» и завершите. Повторное открытие завершённой заявки не предлагает новое изменение.</p></section><section class="block text"><h3>Почему проверка на сервере необходима</h3><p>Скрытая кнопка не защищает данные от прямого запроса. require_user(admin=True) или require_user(true) проверяет роль, выбранную из БД. Статус берётся из заблокированной строки, следующий статус вычисляется сервером. История вставляется только при успешном UPDATE в той же транзакции. Проверяйте количество событий после отказа: лишнего события быть не должно.</p></section><figure class="block screenshot"><h3>Завершённая заявка Flask</h3><img src="assets/screenshots/8ed0fa6e250443ec.jpg" alt="Завершённая заявка Flask"><figcaption>Клиент видит результат и всю историю: создание, принятие в работу, завершение. Это фактический результат браузерного выполнения.</figcaption></figure><figure class="block screenshot"><h3>Завершённая заявка PHP</h3><img src="assets/screenshots/bdff2855f100c43c.jpg" alt="Завершённая заявка PHP"><figcaption>Та же цепочка реализована отдельным PHP/PDO-приложением с собственной БД и сессией.</figcaption></figure></div></article><article class="lesson" id="page-58"><p class="eyebrow"></p><h2>Проверьте доступ, данные и исправления</h2><div class="blocks"><section class="block text"><h3>Права и чужие записи</h3><p>Зарегистрируйте второй учебный логин client02. В его списке нет заявки первого клиента. Подставьте её идентификатор в URL /ticket/ID или index.php?page=ticket&amp;id=ID: ожидайте 404. Клиентский POST изменения статуса должен дать 403. Номер заявки не является паролем доступа. После выхода Flask закрывает защищённый маршрут ответом 403, PHP переводит неавторизованного пользователя на вход.</p></section><section class="block text"><h3>Проверка через инструменты браузера</h3><p>Откройте F12 → Network (Сеть). Включите сохранение журнала, отправьте форму и найдите POST. Во вкладке Payload видны поля и csrf. Для проверки обхода HTML используйте «Copy as cURL» для своего учебного запроса, вставьте в локальный терминал и замените проверяемое значение: service_id на отсутствующее, adapter на неизвестное либо удалите csrf. Не публикуйте cookie или csrf в отчёте. Не выполняйте эти проверки на чужих сайтах. Ожидаемые ответы: сообщение о недопустимой услуге/поле, 400 для отсутствующего токена.</p></section><section class="block text"><h3>Разбор дефекта по причинной цепочке</h3><p>Запишите входные данные и ожидаемое поведение. Повторите проблему на своей учебной базе. Найдите маршрут и соответствующее правило в rules.py либо DomainPolicy в lib.php. Сверьте имя поля формы, имя ключа JSON и обращение обработчика: несовпадение часто даёт пустое значение. Исправьте ровно причину и повторите исходный запрос. Затем повторите корректную заявку и соседний сценарий регистрации/входа. В отчёте отделите первоначальный дефект, изменение и результаты обеих проверок.</p></section><section class="block text"><h3>Проверка БД</h3><p>В phpMyAdmin откройте tickets → Обзор и найдите заявку. parameters содержит serial/adapter, user_id соответствует владельцу, technician_id — назначенному мастеру. В ticket_history ровно три события при полном цикле; отклонённое завершение не добавляет четвёртого. В users.password_hash находится хеш, а не введённый пароль. Экспортируйте свою учебную БД через «Экспорт → Быстрый → SQL» для локального восстановления; реальные персональные данные не используйте.</p></section></div></article><article class="lesson" id="page-59"><p class="eyebrow"></p><h2>Перейдите к своей предметной области</h2><div class="blocks"><section class="block text"><h3>Сначала требования, затем конфигурация</h3><p>Прочитайте условия своего варианта. Определите, какие значения вводит клиент, какие берутся из справочника и какое правило связывает услугу с изделием. Сформулируйте один допустимый и один недопустимый пример до изменения кода. Переименуйте domain.title, замените демонстрационные услуги и мастеров собственными вымышленными данными. Общая схема ролей и истории сохраняется; свойства вашей области нельзя оставлять под чужими подписями.</p></section><section class="block text"><h3>Как добавить поле</h3><p>В domain.json добавьте объект fields с уникальным name латиницей, понятным label и type. text подходит для строки; select требует choices; number или integer — min и max; required делает поле обязательным. Например, общее учебное поле quantity может иметь type integer, min 1, max 5. Сервер считывает только описанные имена, шаблон создаёт соответствующее поле, parameters сохраняет значения. После изменения Flask перезапустите; PHP перечитывает JSON на запрос. Нельзя добавлять только HTML без серверного правила.</p></section><section class="block text"><h3>Условие и совместимость</h3><p>Для обязательности после выбора задайте when.field, when.equals и require с именем требуемого поля. Для совместимости — when и expect.field/expect.equals. message объясняет отказ пользователю. Например, если услуга зависит от типа изделия, сравните выбранную услугу с типом; если параметры имеют диапазон, задайте min/max. Не переносите готовую конфигурацию демонстрации без анализа. Реализуйте собственное правило и поясните его место в обработке.</p></section><section class="block text"><h3>Действующий справочник</h3><p>Список choices описывает допустимые значения предметного поля. Справочник services хранится в БД и дополнительно проверяется active. Если вариант требует отключённой категории, заведите категории инструмента как услуги: в phpMyAdmin services → Обзор → Изменить выставьте active=0 у одной записи, сохраните. Она исчезает из формы; прежний идентификатор не принимается при прямом POST. Для другого каталога создайте отдельную таблицу и аналогичную серверную проверку.</p></section><section class="block text"><h3>Проверка индивидуального изменения</h3><p>Отправьте правильные данные, повторно откройте карточку и проверьте parameters в БД. Повторите указанный в карточке отрицательный случай и соседние границы числового диапазона. После отказа число заявок не увеличивается. Затем обработайте правильную заявку до завершения, проверьте историю и чужой доступ. В отчёте объясните, что осталось общим, что изменилось для вашей области и что подтверждает каждая проверка.</p></section></div></article><article class="lesson" id="page-60"><p class="eyebrow"></p><h2>Восстановление и передача пользователю</h2><div class="blocks"><section class="block text"><h3>Проверка с пустой базы</h3><p>Создайте новую учебную БД pm05_recheck, выполните schema.sql, задайте DB_NAME=pm05_recheck в новом терминале и создайте администратора соответствующей веткой. Запустите приложение на свободном порту, например 5058 для Flask или 8058 для PHP. Зарегистрируйте нового клиента и повторите весь цикл. Это подтверждает, что проект не зависит от вашей прежней базы или случайных записей. В собственной инструкции перечислите реквизиты конфигурации без секретов, точные команды и ожидаемые экраны.</p></section><section class="block text"><h3>Git и версия</h3><p>В терминале из service-center выполните git init. Создайте .gitignore с .venv/, __pycache__/, .env, *.log и каталогами локальных БД. Добавляйте явно только проверенные исходники и документацию, например git add schema.sql domain.json flask php README.md .gitignore; затем git commit -m &quot;Create service center application&quot;. Для своей ветки добавляйте только её каталог. После законченного изменения создавайте отдельный коммит. Репозиторий создайте в своей учётной записи, задайте remote и отправьте текущую ветку выбранным Git-клиентом. Перед отправкой проверьте git status и отсутствие паролей/локальной БД.</p></section><section class="block text"><h3>Пояснение заказчику</h3><p>Покажите регистрацию, создание заявки, отказ ошибочного ввода, очередь, исполнителя и результат. Объясните, кто видит данные и как повторить запуск. Укажите ограничения учебного сервера и требования установленной среды. При сдаче проекта приложите ссылку на его репозиторий. Заполните общий отчёт фактическими данными и собственными снимками; не вставляйте снимки преподавателя как подтверждение своей работы.</p></section></div></article></main><footer><span>ПМ.05 «Проектирование и разработка информационных систем»</span><span>Единый учебный комплект</span></footer></div></body></html>

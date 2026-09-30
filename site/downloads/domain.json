@@ -1,0 +1,10 @@
+{
+  "title": "Сервисный центр учебной техники",
+  "fields": [
+    {"name": "serial", "label": "Серийный номер", "type": "text", "required": true, "pattern": "^[A-Za-z0-9-]{3,30}$"},
+    {"name": "adapter", "label": "Блок питания в комплекте", "type": "select", "choices": ["Да", "Нет"]}
+  ],
+  "rules": [
+    {"when": {"field": "service", "equals": "Диагностика питания"}, "require": "adapter", "message": "Для диагностики питания укажите, передан ли блок питания."}
+  ]
+}
