@@ -1,0 +1,36 @@
+{
+  "title": "Ремонт мебели",
+  "fields": [
+    {
+      "name": "furniture",
+      "label": "Вид мебели",
+      "type": "select",
+      "choices": [
+        "Стул",
+        "Диван"
+      ],
+      "required": true
+    },
+    {
+      "name": "material",
+      "label": "Материал",
+      "type": "select",
+      "choices": [
+        "Дерево",
+        "Металл"
+      ],
+      "required": true
+    },
+    {
+      "name": "upholstery",
+      "label": "Обивка имеется",
+      "type": "select",
+      "choices": [
+        "Да",
+        "Нет"
+      ],
+      "required": true
+    }
+  ],
+  "rules": []
+}

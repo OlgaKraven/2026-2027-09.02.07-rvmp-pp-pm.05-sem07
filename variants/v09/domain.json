@@ -1,0 +1,30 @@
+{
+  "title": "Ремонт электронных книг",
+  "fields": [
+    {
+      "name": "model",
+      "label": "Модель",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "diagonal",
+      "label": "Диагональ, дюйм",
+      "type": "number",
+      "min": 0.1,
+      "max": 50,
+      "required": true
+    },
+    {
+      "name": "damage",
+      "label": "Механическое повреждение",
+      "type": "select",
+      "choices": [
+        "Да",
+        "Нет"
+      ],
+      "required": false
+    }
+  ],
+  "rules": []
+}

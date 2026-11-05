@@ -50,5 +50,15 @@
 <button>{{ 'Принять в работу' if ticket.status == 'Новая' else 'Завершить заявку' }}</button></form>{% endif %}</section>
 <section><h2>История обработки</h2>{% for h in history %}<article><p>{{ h.changed_at }} · {{ h.full_name }}</p><p>{{ h.old_status or 'Создание' }} → <strong>{{ h.new_status }}</strong></p><p>{{ h.comment }}</p></article>{% endfor %}</section>
 {% endif %}
-<footer>Учебная демонстрация · версия 1.0 · отдельная учебная база данных</footer>
+
+{% if page == 'detail' %}
+<section><h2>Отзыв о работе</h2>
+{% for r in reviews %}<p>{{ r.body }}</p><p>{{ r.created_at }}</p>{% else %}
+{% if user.role == 'client' and ticket.status == 'Завершена' %}
+<form method="post" action="/ticket/{{ ticket.id }}/review">
+<input type="hidden" name="csrf" value="{{ session.csrf }}">
+<label>Отзыв<textarea name="body" required minlength="5" maxlength="1000"></textarea></label>
+<button>Сохранить отзыв</button></form>
+{% else %}<p>Отзыв доступен владельцу после завершения заявки.</p>{% endif %}
+{% endfor %}</section>{% endif %}
 </main></body></html>

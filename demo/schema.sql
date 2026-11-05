@@ -50,5 +50,15 @@ CREATE TABLE ticket_history (
  FOREIGN KEY (actor_id) REFERENCES users(id)
 ) ENGINE=InnoDB;
 
+CREATE TABLE ticket_reviews (
+ id INT PRIMARY KEY AUTO_INCREMENT,
+ ticket_id INT NOT NULL UNIQUE,
+ user_id INT NOT NULL,
+ body VARCHAR(1000) NOT NULL,
+ created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ FOREIGN KEY (ticket_id) REFERENCES tickets(id),
+ FOREIGN KEY (user_id) REFERENCES users(id)
+) ENGINE=InnoDB;
+
 INSERT INTO services(name) VALUES ('Диагностика питания'),('Ремонт разъёма');
 INSERT INTO technicians(name) VALUES ('Мастер учебного сервиса'),('Специалист по разъёмам');

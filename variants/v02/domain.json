@@ -1,0 +1,28 @@
+{
+  "title": "Ремонт смартфонов",
+  "fields": [
+    {
+      "name": "model",
+      "label": "Модель",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "node",
+      "label": "Повреждённый узел",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "image",
+      "label": "Изображение есть",
+      "type": "select",
+      "choices": [
+        "Да",
+        "Нет"
+      ],
+      "required": false
+    }
+  ],
+  "rules": []
+}

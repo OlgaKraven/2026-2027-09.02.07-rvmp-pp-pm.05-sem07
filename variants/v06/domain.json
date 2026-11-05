@@ -1,0 +1,22 @@
+{
+  "title": "Ремонт сканеров",
+  "fields": [
+    {
+      "name": "model",
+      "label": "Модель",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "feed",
+      "label": "Тип подачи",
+      "type": "select",
+      "choices": [
+        "Планшетная",
+        "Автоподача"
+      ],
+      "required": true
+    }
+  ],
+  "rules": []
+}

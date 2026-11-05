@@ -1,0 +1,24 @@
+{
+  "title": "Ремонт погрузочных тележек",
+  "fields": [
+    {
+      "name": "type",
+      "label": "Тип тележки",
+      "type": "select",
+      "choices": [
+        "Ручная",
+        "Электрическая"
+      ],
+      "required": true
+    },
+    {
+      "name": "capacity",
+      "label": "Грузоподъёмность, кг",
+      "type": "integer",
+      "min": 1,
+      "max": 100000,
+      "required": true
+    }
+  ],
+  "rules": []
+}

@@ -1,0 +1,24 @@
+{
+  "title": "Ремонт упаковочного оборудования",
+  "fields": [
+    {
+      "name": "type",
+      "label": "Тип оборудования",
+      "type": "select",
+      "choices": [
+        "Запайщик",
+        "Дозатор"
+      ],
+      "required": true
+    },
+    {
+      "name": "width",
+      "label": "Ширина запайки, мм",
+      "type": "number",
+      "min": 0.01,
+      "max": 100000,
+      "required": false
+    }
+  ],
+  "rules": []
+}

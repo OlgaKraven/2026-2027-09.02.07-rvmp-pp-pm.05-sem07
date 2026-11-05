@@ -1,0 +1,26 @@
+{
+  "title": "Ремонт кухонного оборудования столовых",
+  "fields": [
+    {
+      "name": "type",
+      "label": "Тип оборудования",
+      "type": "select",
+      "choices": [
+        "Плита",
+        "Печь"
+      ],
+      "required": true
+    },
+    {
+      "name": "voltage",
+      "label": "Напряжение, В",
+      "type": "select",
+      "choices": [
+        "220",
+        "380"
+      ],
+      "required": true
+    }
+  ],
+  "rules": []
+}

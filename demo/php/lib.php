@@ -56,21 +56,21 @@ final class DomainPolicy {
             $value = trim((string)($values[$field['name']] ?? ''));
             $label = $field['label'];
             if ($value === '') {
-                if ($field['required'] ?? false) $errors[] = "Заполните поле «$label».";
+                if ($field['required'] ?? false) $errors[] = "Заполните поле «{$label}».";
                 continue;
             }
-            if (mb_strlen($value) > 120) $errors[] = "Поле «$label» слишком длинное.";
+            if (mb_strlen($value) > 120) $errors[] = "Поле «{$label}» слишком длинное.";
             if ($field['type'] === 'select' && !in_array($value, $field['choices'], true))
-                $errors[] = "Выберите допустимое значение «$label».";
+                $errors[] = "Выберите допустимое значение «{$label}».";
             if (isset($field['pattern']) && !preg_match('~'.$field['pattern'].'~u', $value))
-                $errors[] = "Проверьте формат «$label».";
+                $errors[] = "Проверьте формат «{$label}».";
             if (in_array($field['type'], ['number','integer'], true)) {
                 $number = is_numeric($value) ? (float)$value : NAN;
                 $valid = is_finite($number)
                     && ($field['type'] !== 'integer' || floor($number) === $number)
                     && $number >= ($field['min'] ?? 0)
                     && $number <= ($field['max'] ?? 100000);
-                if (!$valid) $errors[] = "Проверьте число «$label».";
+                if (!$valid) $errors[] = "Проверьте число «{$label}».";
             }
         }
         foreach ($this->domain['rules'] ?? [] as $rule) {
@@ -94,7 +94,7 @@ function registration_errors(array $v): array {
         $errors[] = 'Логин: от 6 до 40 латинских букв и цифр.';
     $length = mb_strlen($v['password'] ?? '');
     if ($length < 8 || strlen($v['password'] ?? '') > 64) $errors[] = 'Пароль: от 8 символов, не более 64 байт UTF-8.';
-    if (!preg_match('/^[А-Яа-яЁё ]{3,120}$/uD', $v['full_name'] ?? ''))
+    if (!preg_match('/^[А-Яа-яЁё ]{3,120}$/uD', trim($v['full_name'] ?? '')))
         $errors[] = 'ФИО: кириллица и пробелы.';
     if (!preg_match('/^8\(\d{3}\)\d{3}-\d{2}-\d{2}$/D', $v['phone'] ?? ''))
         $errors[] = 'Телефон: 8(999)123-45-67.';

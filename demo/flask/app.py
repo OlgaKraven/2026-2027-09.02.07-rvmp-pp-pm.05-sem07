@@ -12,7 +12,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('APP_SECRET') or secrets.token_hex(32)
 app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE='Lax',
                   SESSION_COOKIE_NAME='pm05_flask')
-domain = json.loads((Path(__file__).parent.parent / 'domain.json').read_text())
+domain = json.loads((Path(__file__).parent.parent / 'domain.json').read_text(encoding='utf-8'))
 policy = DomainPolicy(domain)
 
 
@@ -169,7 +169,32 @@ def detail(ticket_id):
     history = rows('SELECT h.*,u.full_name FROM ticket_history h JOIN users u ON u.id=h.actor_id '
                    'WHERE ticket_id=%s ORDER BY h.id',(ticket_id,))
     return show('detail',ticket=found[0],details=json.loads(found[0]['parameters']),history=history,
-                technicians=rows('SELECT * FROM technicians WHERE active=TRUE'),errors=errors)
+                technicians=rows('SELECT * FROM technicians WHERE active=TRUE'),errors=errors,
+                reviews=rows('SELECT body,created_at FROM ticket_reviews WHERE ticket_id=%s',(ticket_id,)))
+
+
+@app.post('/ticket/<int:ticket_id>/review')
+def review(ticket_id):
+    user = require_user()
+    if user['role'] != 'client':
+        abort(403)
+    body = request.form.get('body', '').strip()
+    with database() as connection, connection.cursor() as cursor:
+        cursor.execute('SELECT * FROM tickets WHERE id=%s AND user_id=%s FOR UPDATE',
+                       (ticket_id, user['id']))
+        ticket = cursor.fetchone()
+        if not ticket:
+            abort(404)
+        if ticket['status'] != 'Завершена':
+            abort(409, 'Отзыв доступен после завершения заявки.')
+        if not 5 <= len(body) <= 1000:
+            abort(400, 'Отзыв: от 5 до 1000 символов.')
+        cursor.execute('SELECT id FROM ticket_reviews WHERE ticket_id=%s', (ticket_id,))
+        if cursor.fetchone():
+            abort(409, 'Отзыв уже сохранён.')
+        cursor.execute('INSERT INTO ticket_reviews(ticket_id,user_id,body) VALUES(%s,%s,%s)',
+                       (ticket_id,user['id'],body))
+    return redirect(url_for('detail',ticket_id=ticket_id))
 
 
 @app.cli.command('create-admin')

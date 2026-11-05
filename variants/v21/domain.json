@@ -1,0 +1,24 @@
+{
+  "title": "Подгонка и ремонт одежды",
+  "fields": [
+    {
+      "name": "garment",
+      "label": "Вид изделия",
+      "type": "select",
+      "choices": [
+        "Брюки",
+        "Платье"
+      ],
+      "required": true
+    },
+    {
+      "name": "cm",
+      "label": "Изменение, см",
+      "type": "number",
+      "min": 1,
+      "max": 20,
+      "required": false
+    }
+  ],
+  "rules": []
+}

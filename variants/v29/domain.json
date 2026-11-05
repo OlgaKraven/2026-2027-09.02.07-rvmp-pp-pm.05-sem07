@@ -1,0 +1,32 @@
+{
+  "title": "Обслуживание вендинговых автоматов",
+  "fields": [
+    {
+      "name": "type",
+      "label": "Тип автомата",
+      "type": "select",
+      "choices": [
+        "Напитки",
+        "Снеки"
+      ],
+      "required": true
+    },
+    {
+      "name": "node",
+      "label": "Обслуживаемый узел",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "cooling",
+      "label": "Охлаждение имеется",
+      "type": "select",
+      "choices": [
+        "Да",
+        "Нет"
+      ],
+      "required": true
+    }
+  ],
+  "rules": []
+}

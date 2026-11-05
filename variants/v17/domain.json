@@ -1,0 +1,22 @@
+{
+  "title": "Ремонт самокатов",
+  "fields": [
+    {
+      "name": "model",
+      "label": "Модель",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "type",
+      "label": "Тип самоката",
+      "type": "select",
+      "choices": [
+        "Электрический",
+        "Механический"
+      ],
+      "required": true
+    }
+  ],
+  "rules": []
+}

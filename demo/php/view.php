@@ -38,4 +38,11 @@
 <button><?= $ticket['status'] === 'Новая' ? 'Принять в работу' : 'Завершить заявку' ?></button></form><?php endif ?></section>
 <section><h2>История обработки</h2><?php foreach ($history as $h): ?><article><p><?= e($h['changed_at'].' · '.$h['full_name']) ?></p><p><?= e($h['old_status'] ?: 'Создание') ?> → <strong><?= e($h['new_status']) ?></strong></p><p><?= e($h['comment']) ?></p></article><?php endforeach ?></section>
 <?php endif ?>
-<footer>Учебная демонстрация · версия 1.0 · отдельная учебная база данных</footer></main></body></html>
+<?php if ($page === 'ticket'): ?><section><h2>Отзыв о работе</h2>
+<?php if ($reviews): foreach ($reviews as $r): ?><p><?= e($r['body']) ?></p><p><?= e($r['created_at']) ?></p><?php endforeach;
+elseif ($user['role'] === 'client' && $ticket['status'] === 'Завершена'): ?>
+<form method="post" action="index.php?page=review&amp;id=<?= e($id) ?>"><?php csrf_input(); ?>
+<label>Отзыв<textarea name="body" required minlength="5" maxlength="1000"></textarea></label>
+<button>Сохранить отзыв</button></form>
+<?php else: ?><p>Отзыв доступен владельцу после завершения заявки.</p><?php endif; ?></section><?php endif; ?>
+</main></body></html>

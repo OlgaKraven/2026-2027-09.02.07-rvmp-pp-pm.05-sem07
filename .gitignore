@@ -1,0 +1,6 @@
+output/
+__pycache__/
+.venv/
+*.log
+test-project/results.json
+/results.json

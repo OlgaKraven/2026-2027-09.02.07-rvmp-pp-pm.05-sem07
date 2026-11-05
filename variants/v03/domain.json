@@ -1,0 +1,32 @@
+{
+  "title": "Обслуживание принтеров",
+  "fields": [
+    {
+      "name": "model",
+      "label": "Модель",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "print_type",
+      "label": "Тип печати",
+      "type": "select",
+      "choices": [
+        "Лазерная",
+        "Струйная"
+      ],
+      "required": true
+    },
+    {
+      "name": "code",
+      "label": "Код ошибки",
+      "type": "text"
+    },
+    {
+      "name": "defect",
+      "label": "Дефект отпечатка",
+      "type": "text"
+    }
+  ],
+  "rules": []
+}

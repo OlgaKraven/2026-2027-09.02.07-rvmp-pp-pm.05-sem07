@@ -1,0 +1,23 @@
+{
+  "title": "Ремонт ноутбуков",
+  "fields": [
+    {
+      "name": "serial",
+      "label": "Серийный номер",
+      "type": "text",
+      "required": true,
+      "pattern": "^[A-Za-z0-9-]{3,30}$"
+    },
+    {
+      "name": "adapter",
+      "label": "Блок питания",
+      "type": "select",
+      "choices": [
+        "Да",
+        "Нет"
+      ],
+      "required": false
+    }
+  ],
+  "rules": []
+}

@@ -1,0 +1,22 @@
+{
+  "title": "Ремонт бытовых кофемашин",
+  "fields": [
+    {
+      "name": "model",
+      "label": "Модель",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "grinder",
+      "label": "Встроенная кофемолка",
+      "type": "select",
+      "choices": [
+        "Да",
+        "Нет"
+      ],
+      "required": true
+    }
+  ],
+  "rules": []
+}

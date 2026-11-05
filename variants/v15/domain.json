@@ -1,0 +1,31 @@
+{
+  "title": "Обслуживание садовой техники",
+  "fields": [
+    {
+      "name": "machine",
+      "label": "Вид техники",
+      "type": "select",
+      "choices": [
+        "Газонокосилка",
+        "Триммер"
+      ],
+      "required": true
+    },
+    {
+      "name": "engine",
+      "label": "Двигатель",
+      "type": "select",
+      "choices": [
+        "Бензиновый",
+        "Электрический"
+      ],
+      "required": true
+    },
+    {
+      "name": "engine_model",
+      "label": "Модель двигателя",
+      "type": "text"
+    }
+  ],
+  "rules": []
+}

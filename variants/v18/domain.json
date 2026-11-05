@@ -1,0 +1,16 @@
+{
+  "title": "Ремонт часов",
+  "fields": [
+    {
+      "name": "mechanism",
+      "label": "Механизм",
+      "type": "select",
+      "choices": [
+        "Кварцевый",
+        "Механический"
+      ],
+      "required": true
+    }
+  ],
+  "rules": []
+}

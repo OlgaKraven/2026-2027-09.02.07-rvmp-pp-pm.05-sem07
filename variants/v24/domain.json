@@ -1,0 +1,24 @@
+{
+  "title": "Обслуживание аквариумного оборудования",
+  "fields": [
+    {
+      "name": "device",
+      "label": "Вид устройства",
+      "type": "select",
+      "choices": [
+        "Фильтр",
+        "Нагреватель"
+      ],
+      "required": true
+    },
+    {
+      "name": "volume",
+      "label": "Объём, л",
+      "type": "integer",
+      "min": 1,
+      "max": 100000,
+      "required": true
+    }
+  ],
+  "rules": []
+}

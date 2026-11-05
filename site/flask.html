@@ -1,0 +1,393 @@
+<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Инструкция FLASK</title><style>@font-face{font-family:Golos;src:url(assets/fonts/GolosText-Regular.ttf)}@font-face{font-family:Golos;src:url(assets/fonts/GolosText-Bold.ttf);font-weight:700}*{box-sizing:border-box}body{margin:0;background:#e9e9ec;color:#1c1c1c;font:15px/1.65 Golos,Arial,sans-serif}nav{max-width:736px;margin:16px auto;background:#fff;padding:12px 22px}nav a{margin-right:16px;color:#a50b12}article{max-width:736px;margin:18px auto;background:#fff}header{padding:34px 38px 28px;background:#1c1c1c;color:white;border-bottom:6px solid #ed131c}header h1{font-size:35px;line-height:1.15;letter-spacing:-1px;margin:22px 0 0}header small{font-size:12px}.content{padding:24px 30px 28px}.step{display:grid;grid-template-columns:38px 1fr;gap:11px;margin:0 0 17px}.num{height:32px;min-width:38px;border:1.5px solid #ed131c;border-radius:18px;text-align:center;font-size:12px;line-height:29px;background:white}.block{padding:20px 21px;border-radius:14px;background:#f4f4f6}.block h2{font-size:18px;line-height:1.35;margin:0 0 12px}.block p{margin:0 0 10px;overflow-wrap:anywhere}pre{font:12px/1.65 Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;background:white;padding:15px;border:1px solid #dfe1e5;border-radius:7px}img{display:block;max-width:100%;height:auto}figcaption{font-size:13px;line-height:1.6}a{color:#a50b12}@media(max-width:570px){header{padding:29px 22px 24px}header h1{font-size:30px}.content{padding:23px 16px 24px}.step{grid-template-columns:27px 1fr;gap:8px}.num{min-width:27px;font-size:11px}.block{padding:17px 15px}}</style><nav><a href="index.html">Материалы</a><a href="lessons.html">Методика</a><a href="areas.html">Варианты</a></nav><article><header><small>ПП ПМ.05 · Серверная часть сервиса заявок</small><h1>Выбрана ветка FLASK</h1></header><div class="content"><div class="step"><span class="num">1</span><section class="block"><h2>Один проект</h2><p>Использовать свой domain.json и schema.sql из vNN. Эти файлы заменяют демонстрационные до первого запуска. Создать серверные файлы выбранной папки по законченным листингам ниже, сверяя назначение функций. HTML и CSS разрешено взять готовыми. Сопоставить имена файлов и пути. Полные листинги являются учебным образцом; собственное предметное правило и проверки обязательны. Вторую ветку не выполнять.</p></section></div></div></article><article><header><small>ПП ПМ.05 · Серверная часть сервиса заявок</small><h1>flask/db.py</h1></header><div class="content"><div class="step"><span class="num">1</span><section class="block"><h2>Назначение и место</h2><p>Соединение и атомарная транзакция. Файл расположен в service-vNN/flask/db.py. Сохранить в UTF-8. Это одна законченная единица; код перенести полностью, затем проверить синтаксис и запустить. Относительный путь к domain.json идёт из выбранной папки на один уровень вверх. Свои предметные поля не переименовывать в поля образца.</p></section></div><div class="step"><span class="num">2</span><section class="block"><h2>Полный файл</h2><pre>import os
+import pymysql
+from contextlib import contextmanager
+
+
+@contextmanager
+def database():
+    connection = pymysql.connect(
+        host=os.environ.get(&#x27;DB_HOST&#x27;, &#x27;127.0.0.1&#x27;),
+        port=int(os.environ.get(&#x27;DB_PORT&#x27;, &#x27;3306&#x27;)),
+        user=os.environ.get(&#x27;DB_USER&#x27;, &#x27;root&#x27;),
+        password=os.environ.get(&#x27;DB_PASSWORD&#x27;, &#x27;&#x27;),
+        database=os.environ.get(&#x27;DB_NAME&#x27;, &#x27;pm05_flask&#x27;),
+        charset=&#x27;utf8mb4&#x27;, cursorclass=pymysql.cursors.DictCursor,
+    )
+    try:
+        yield connection
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        connection.close()
+
+
+def rows(sql, args=()):
+    with database() as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(sql, args)
+            return cursor.fetchall()
+</pre></section></div></div></article><article><header><small>ПП ПМ.05 · Серверная часть сервиса заявок</small><h1>flask/rules.py</h1></header><div class="content"><div class="step"><span class="num">1</span><section class="block"><h2>Назначение и место</h2><p>Серверные ограничения полей и DomainPolicy. Файл расположен в service-vNN/flask/rules.py. Сохранить в UTF-8. Это одна законченная единица; код перенести полностью, затем проверить синтаксис и запустить. Относительный путь к domain.json идёт из выбранной папки на один уровень вверх. Свои предметные поля не переименовывать в поля образца.</p></section></div><div class="step"><span class="num">2</span><section class="block"><h2>Полный файл</h2><pre>import math
+import re
+
+
+def validate_details(domain, values):
+    errors = []
+    for field in domain[&#x27;fields&#x27;]:
+        value = values.get(field[&#x27;name&#x27;], &#x27;&#x27;).strip()
+        if not value:
+            if field.get(&#x27;required&#x27;):
+                errors.append(f&quot;Заполните поле «{field[&#x27;label&#x27;]}».&quot;)
+            continue
+        if len(value) &gt; 120:
+            errors.append(f&quot;Поле «{field[&#x27;label&#x27;]}» слишком длинное.&quot;)
+        if field[&#x27;type&#x27;] == &#x27;select&#x27; and value not in field[&#x27;choices&#x27;]:
+            errors.append(f&quot;Выберите допустимое значение «{field[&#x27;label&#x27;]}».&quot;)
+        if field.get(&#x27;pattern&#x27;) and not re.fullmatch(field[&#x27;pattern&#x27;], value):
+            errors.append(f&quot;Проверьте формат «{field[&#x27;label&#x27;]}».&quot;)
+        if field[&#x27;type&#x27;] in (&#x27;number&#x27;, &#x27;integer&#x27;):
+            try:
+                number = float(value)
+                valid = math.isfinite(number)
+                valid &amp;= field[&#x27;type&#x27;] != &#x27;integer&#x27; or number.is_integer()
+                valid &amp;= number &gt;= field.get(&#x27;min&#x27;, 0)
+                valid &amp;= number &lt;= field.get(&#x27;max&#x27;, 100000)
+                if not valid:
+                    raise ValueError()
+            except ValueError:
+                errors.append(f&quot;Проверьте число «{field[&#x27;label&#x27;]}».&quot;)
+    for rule in domain.get(&#x27;rules&#x27;, []):
+        condition = rule[&#x27;when&#x27;]
+        if values.get(condition[&#x27;field&#x27;]) == condition[&#x27;equals&#x27;]:
+            if rule.get(&#x27;require&#x27;) and not values.get(rule[&#x27;require&#x27;], &#x27;&#x27;).strip():
+                errors.append(rule[&#x27;message&#x27;])
+            if rule.get(&#x27;expect&#x27;):
+                expected = rule[&#x27;expect&#x27;]
+                if values.get(expected[&#x27;field&#x27;]) != expected[&#x27;equals&#x27;]:
+                    errors.append(rule[&#x27;message&#x27;])
+    return errors
+
+
+def validate_registration(values):
+    errors = []
+    if not re.fullmatch(r&#x27;[A-Za-z0-9]{6,40}&#x27;, values.get(&#x27;login&#x27;, &#x27;&#x27;)):
+        errors.append(&#x27;Логин: от 6 до 40 латинских букв и цифр.&#x27;)
+    if not 8 &lt;= len(values.get(&#x27;password&#x27;, &#x27;&#x27;)) or len(values.get(&#x27;password&#x27;, &#x27;&#x27;).encode(&#x27;utf-8&#x27;)) &gt; 64:
+        errors.append(&#x27;Пароль: от 8 символов, не более 64 байт UTF-8.&#x27;)
+    if not re.fullmatch(r&#x27;[А-Яа-яЁё ]{3,120}&#x27;, values.get(&#x27;full_name&#x27;, &#x27;&#x27;).strip()):
+        errors.append(&#x27;ФИО: кириллица и пробелы.&#x27;)
+    if not re.fullmatch(r&#x27;8\(\d{3}\)\d{3}-\d{2}-\d{2}&#x27;, values.get(&#x27;phone&#x27;, &#x27;&#x27;)):
+        errors.append(&#x27;Телефон: 8(999)123-45-67.&#x27;)
+    if not re.fullmatch(r&#x27;[^\s@]+@[^\s@]+\.[^\s@]+&#x27;, values.get(&#x27;email&#x27;, &#x27;&#x27;)) or len(values.get(&#x27;email&#x27;,&#x27;&#x27;)) &gt; 120:
+        errors.append(&#x27;Введите корректную электронную почту.&#x27;)
+    return errors
+
+
+class DomainPolicy:
+    def __init__(self, domain):
+        self.domain = domain
+
+    def validate(self, values):
+        return validate_details(self.domain, values)
+</pre></section></div></div></article><article><header><small>ПП ПМ.05 · Серверная часть сервиса заявок</small><h1>flask/app.py</h1></header><div class="content"><div class="step"><span class="num">1</span><section class="block"><h2>Назначение и место</h2><p>Сессия, роли, обработчики и отзыв. Файл расположен в service-vNN/flask/app.py. Сохранить в UTF-8. Это одна законченная единица; код перенести полностью, затем проверить синтаксис и запустить. Относительный путь к domain.json идёт из выбранной папки на один уровень вверх. Свои предметные поля не переименовывать в поля образца.</p></section></div><div class="step"><span class="num">2</span><section class="block"><h2>Полный файл</h2><pre>import json
+import os
+import secrets
+from pathlib import Path
+import pymysql
+from flask import Flask, abort, redirect, render_template, request, session, url_for
+from werkzeug.security import check_password_hash, generate_password_hash
+from db import database, rows
+from rules import DomainPolicy, validate_registration
+
+app = Flask(__name__)
+app.secret_key = os.environ.get(&#x27;APP_SECRET&#x27;) or secrets.token_hex(32)
+app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE=&#x27;Lax&#x27;,
+                  SESSION_COOKIE_NAME=&#x27;pm05_flask&#x27;)
+domain = json.loads((Path(__file__).parent.parent / &#x27;domain.json&#x27;).read_text(encoding=&#x27;utf-8&#x27;))
+policy = DomainPolicy(domain)
+
+
+@app.before_request
+def protect():
+    session.setdefault(&#x27;csrf&#x27;, secrets.token_hex(24))
+    if request.method == &#x27;POST&#x27; and not secrets.compare_digest(
+        session[&#x27;csrf&#x27;], request.form.get(&#x27;csrf&#x27;, &#x27;&#x27;)
+    ):
+        abort(400, &#x27;Недействительный токен формы. Обновите страницу.&#x27;)
+
+
+def current_user():
+    found = rows(&#x27;SELECT id,login,full_name,role FROM users WHERE id=%s&#x27;,
+                 (session.get(&#x27;user_id&#x27;, 0),))
+    return found[0] if found else None
+
+
+def require_user(admin=False):
+    user = current_user()
+    if not user or (admin and user[&#x27;role&#x27;] != &#x27;admin&#x27;):
+        abort(403)
+    return user
+
+
+def show(page, **context):
+    return render_template(&#x27;page.html&#x27;, page=page, domain=domain,
+                           user=current_user(), values=request.form,
+                           errors=context.pop(&#x27;errors&#x27;, []), **context)
+
+
+@app.route(&#x27;/register&#x27;, methods=[&#x27;GET&#x27;, &#x27;POST&#x27;])
+def register():
+    errors = []
+    if request.method == &#x27;POST&#x27;:
+        errors = validate_registration(request.form)
+        if not errors:
+            try:
+                with database() as connection, connection.cursor() as cursor:
+                    cursor.execute(
+                        &#x27;INSERT INTO users(login,password_hash,full_name,phone,email) &#x27;
+                        &#x27;VALUES(%s,%s,%s,%s,%s)&#x27;,
+                        (request.form[&#x27;login&#x27;], generate_password_hash(request.form[&#x27;password&#x27;]),
+                         request.form[&#x27;full_name&#x27;], request.form[&#x27;phone&#x27;], request.form[&#x27;email&#x27;]))
+                return redirect(url_for(&#x27;login&#x27;))
+            except pymysql.err.IntegrityError:
+                errors = [&#x27;Этот логин уже занят.&#x27;]
+    return show(&#x27;register&#x27;, errors=errors)
+
+
+@app.route(&#x27;/login&#x27;, methods=[&#x27;GET&#x27;, &#x27;POST&#x27;])
+def login():
+    errors = []
+    if request.method == &#x27;POST&#x27;:
+        found = rows(&#x27;SELECT * FROM users WHERE login=%s&#x27;, (request.form.get(&#x27;login&#x27;,&#x27;&#x27;),))
+        if found and check_password_hash(found[0][&#x27;password_hash&#x27;], request.form.get(&#x27;password&#x27;,&#x27;&#x27;)):
+            session.clear()
+            session.update(user_id=found[0][&#x27;id&#x27;], csrf=secrets.token_hex(24))
+            return redirect(url_for(&#x27;index&#x27;))
+        errors = [&#x27;Неверный логин или пароль.&#x27;]
+    return show(&#x27;login&#x27;, errors=errors)
+
+
+@app.post(&#x27;/logout&#x27;)
+def logout():
+    session.clear()
+    return redirect(url_for(&#x27;login&#x27;))
+
+
+@app.get(&#x27;/&#x27;)
+def index():
+    if not current_user():
+        return redirect(url_for(&#x27;login&#x27;))
+    user = require_user()
+    condition = &#x27;1=1&#x27; if user[&#x27;role&#x27;] == &#x27;admin&#x27; else &#x27;t.user_id=%s&#x27;
+    args = [] if user[&#x27;role&#x27;] == &#x27;admin&#x27; else [user[&#x27;id&#x27;]]
+    status = request.args.get(&#x27;status&#x27;, &#x27;&#x27;)
+    if status in (&#x27;Новая&#x27;,&#x27;В работе&#x27;,&#x27;Завершена&#x27;):
+        condition += &#x27; AND t.status=%s&#x27;
+        args.append(status)
+    tickets = rows(&#x27;SELECT t.*,u.full_name,s.name AS service,n.name AS technician &#x27;
+                   &#x27;FROM tickets t JOIN users u ON u.id=t.user_id &#x27;
+                   &#x27;JOIN services s ON s.id=t.service_id &#x27;
+                   &#x27;LEFT JOIN technicians n ON n.id=t.technician_id &#x27;
+                   f&#x27;WHERE {condition} ORDER BY t.id DESC&#x27;, args)
+    return show(&#x27;list&#x27;, tickets=tickets, status=status)
+
+
+@app.route(&#x27;/new&#x27;, methods=[&#x27;GET&#x27;,&#x27;POST&#x27;])
+def new():
+    user = require_user()
+    services = rows(&#x27;SELECT * FROM services WHERE active=TRUE ORDER BY id&#x27;)
+    errors = []
+    if request.method == &#x27;POST&#x27;:
+        service = next((s for s in services if str(s[&#x27;id&#x27;]) == request.form.get(&#x27;service_id&#x27;)), None)
+        if not service:
+            errors.append(&#x27;Выберите действующую услугу.&#x27;)
+        if not 3 &lt;= len(request.form.get(&#x27;equipment&#x27;,&#x27;&#x27;).strip()) &lt;= 120:
+            errors.append(&#x27;Оборудование: от 3 до 120 символов.&#x27;)
+        if not 5 &lt;= len(request.form.get(&#x27;symptom&#x27;,&#x27;&#x27;).strip()) &lt;= 2000:
+            errors.append(&#x27;Описание неисправности: от 5 до 2000 символов.&#x27;)
+        details = {f[&#x27;name&#x27;]:request.form.get(f[&#x27;name&#x27;],&#x27;&#x27;) for f in domain[&#x27;fields&#x27;]}
+        errors += policy.validate({**details, &#x27;service&#x27;:service[&#x27;name&#x27;] if service else &#x27;&#x27;})
+        if not errors:
+            with database() as connection, connection.cursor() as cursor:
+                cursor.execute(&#x27;INSERT INTO tickets(user_id,service_id,equipment,symptom,parameters,result) &#x27;
+                               &#x27;VALUES(%s,%s,%s,%s,%s,%s)&#x27;,
+                               (user[&#x27;id&#x27;],service[&#x27;id&#x27;],request.form[&#x27;equipment&#x27;],request.form[&#x27;symptom&#x27;],
+                                json.dumps(details,ensure_ascii=False),&#x27;&#x27;))
+                ticket_id = cursor.lastrowid
+                cursor.execute(&#x27;INSERT INTO ticket_history(ticket_id,actor_id,new_status,comment) &#x27;
+                               &#x27;VALUES(%s,%s,%s,%s)&#x27;,(ticket_id,user[&#x27;id&#x27;],&#x27;Новая&#x27;,&#x27;Заявка создана&#x27;))
+            return redirect(url_for(&#x27;detail&#x27;,ticket_id=ticket_id))
+    return show(&#x27;new&#x27;,services=services,errors=errors)
+
+
+@app.route(&#x27;/ticket/&lt;int:ticket_id&gt;&#x27;, methods=[&#x27;GET&#x27;,&#x27;POST&#x27;])
+def detail(ticket_id):
+    user = require_user()
+    errors = []
+    if request.method == &#x27;POST&#x27;:
+        require_user(admin=True)
+        with database() as connection, connection.cursor() as cursor:
+            cursor.execute(&#x27;SELECT * FROM tickets WHERE id=%s FOR UPDATE&#x27;,(ticket_id,))
+            ticket = cursor.fetchone()
+            if not ticket:
+                abort(404)
+            target = request.form.get(&#x27;status&#x27;,&#x27;&#x27;)
+            expected = {&#x27;Новая&#x27;:&#x27;В работе&#x27;,&#x27;В работе&#x27;:&#x27;Завершена&#x27;}.get(ticket[&#x27;status&#x27;])
+            try:
+                technician = int(request.form.get(&#x27;technician_id&#x27;,&#x27;&#x27;))
+            except ValueError:
+                technician = 0
+            cursor.execute(&#x27;SELECT id FROM technicians WHERE id=%s AND active=TRUE&#x27;,(technician or 0,))
+            if not cursor.fetchone():
+                errors.append(&#x27;Назначьте действующего исполнителя.&#x27;)
+            result = request.form.get(&#x27;result&#x27;,&#x27;&#x27;).strip()
+            if target != expected:
+                errors.append(&#x27;Недопустимый переход статуса.&#x27;)
+            if target == &#x27;Завершена&#x27; and not 5 &lt;= len(result) &lt;= 2000:
+                errors.append(&#x27;Для завершения опишите результат: от 5 до 2000 символов.&#x27;)
+            if len(result) &gt; 2000:
+                errors.append(&#x27;Результат слишком длинный.&#x27;)
+            if not errors:
+                cursor.execute(&#x27;UPDATE tickets SET status=%s,technician_id=%s,result=%s WHERE id=%s&#x27;,
+                               (target,technician,result,ticket_id))
+                cursor.execute(&#x27;INSERT INTO ticket_history(ticket_id,actor_id,old_status,new_status,comment) &#x27;
+                               &#x27;VALUES(%s,%s,%s,%s,%s)&#x27;,(ticket_id,user[&#x27;id&#x27;],ticket[&#x27;status&#x27;],target,result))
+    found = rows(&#x27;SELECT t.*,s.name AS service,n.name AS technician FROM tickets t &#x27;
+                 &#x27;JOIN services s ON s.id=t.service_id LEFT JOIN technicians n ON n.id=t.technician_id &#x27;
+                 &#x27;WHERE t.id=%s AND (%s=\&#x27;admin\&#x27; OR t.user_id=%s)&#x27;,(ticket_id,user[&#x27;role&#x27;],user[&#x27;id&#x27;]))
+    if not found:
+        abort(404)
+    history = rows(&#x27;SELECT h.*,u.full_name FROM ticket_history h JOIN users u ON u.id=h.actor_id &#x27;
+                   &#x27;WHERE ticket_id=%s ORDER BY h.id&#x27;,(ticket_id,))
+    return show(&#x27;detail&#x27;,ticket=found[0],details=json.loads(found[0][&#x27;parameters&#x27;]),history=history,
+                technicians=rows(&#x27;SELECT * FROM technicians WHERE active=TRUE&#x27;),errors=errors,
+                reviews=rows(&#x27;SELECT body,created_at FROM ticket_reviews WHERE ticket_id=%s&#x27;,(ticket_id,)))
+
+
+@app.post(&#x27;/ticket/&lt;int:ticket_id&gt;/review&#x27;)
+def review(ticket_id):
+    user = require_user()
+    if user[&#x27;role&#x27;] != &#x27;client&#x27;:
+        abort(403)
+    body = request.form.get(&#x27;body&#x27;, &#x27;&#x27;).strip()
+    with database() as connection, connection.cursor() as cursor:
+        cursor.execute(&#x27;SELECT * FROM tickets WHERE id=%s AND user_id=%s FOR UPDATE&#x27;,
+                       (ticket_id, user[&#x27;id&#x27;]))
+        ticket = cursor.fetchone()
+        if not ticket:
+            abort(404)
+        if ticket[&#x27;status&#x27;] != &#x27;Завершена&#x27;:
+            abort(409, &#x27;Отзыв доступен после завершения заявки.&#x27;)
+        if not 5 &lt;= len(body) &lt;= 1000:
+            abort(400, &#x27;Отзыв: от 5 до 1000 символов.&#x27;)
+        cursor.execute(&#x27;SELECT id FROM ticket_reviews WHERE ticket_id=%s&#x27;, (ticket_id,))
+        if cursor.fetchone():
+            abort(409, &#x27;Отзыв уже сохранён.&#x27;)
+        cursor.execute(&#x27;INSERT INTO ticket_reviews(ticket_id,user_id,body) VALUES(%s,%s,%s)&#x27;,
+                       (ticket_id,user[&#x27;id&#x27;],body))
+    return redirect(url_for(&#x27;detail&#x27;,ticket_id=ticket_id))
+
+
+@app.cli.command(&#x27;create-admin&#x27;)
+def create_admin():
+    import getpass
+    login = input(&#x27;Логин администратора: &#x27;)
+    password = getpass.getpass(&#x27;Пароль администратора: &#x27;)
+    with database() as connection, connection.cursor() as cursor:
+        cursor.execute(&#x27;INSERT INTO users(login,password_hash,full_name,phone,email,role) &#x27;
+                       &#x27;VALUES(%s,%s,%s,%s,%s,%s)&#x27;,
+                       (login,generate_password_hash(password),&#x27;Учебный Администратор&#x27;,
+                        &#x27;8(999)123-45-67&#x27;,&#x27;admin@example.test&#x27;,&#x27;admin&#x27;))
+    print(&#x27;Администратор создан в выбранной учебной базе.&#x27;)
+</pre></section></div></div></article><article><header><small>ПП ПМ.05 · Серверная часть сервиса заявок</small><h1>flask/templates/page.html</h1></header><div class="content"><div class="step"><span class="num">1</span><section class="block"><h2>Назначение и место</h2><p>Готовая минимальная оболочка. Файл расположен в service-vNN/flask/templates/page.html. Сохранить в UTF-8. Это одна законченная единица; код перенести полностью, затем проверить синтаксис и запустить. Относительный путь к domain.json идёт из выбранной папки на один уровень вверх. Свои предметные поля не переименовывать в поля образца.</p></section></div><div class="step"><span class="num">2</span><section class="block"><h2>Полный файл</h2><pre>&lt;!doctype html&gt;
+&lt;html lang=&quot;ru&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;
+  &lt;title&gt;{{ domain.title }} — ПМ.05&lt;/title&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;{{ url_for(&#x27;static&#x27;,filename=&#x27;style.css&#x27;) }}&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;&lt;main&gt;
+&lt;header&gt;&lt;p&gt;ПМ.05 · Проектирование и разработка информационных систем&lt;/p&gt;&lt;h1&gt;{{ domain.title }}&lt;/h1&gt;&lt;/header&gt;
+&lt;nav&gt;
+{% if user %}
+  &lt;a href=&quot;/&quot;&gt;{{ &#x27;Очередь заявок&#x27; if user.role == &#x27;admin&#x27; else &#x27;Мои заявки&#x27; }}&lt;/a&gt;
+  &lt;a href=&quot;/new&quot;&gt;Создать заявку&lt;/a&gt;&lt;span&gt;{{ user.full_name }} · {{ user.role }}&lt;/span&gt;
+  &lt;form action=&quot;/logout&quot; method=&quot;post&quot;&gt;&lt;input type=&quot;hidden&quot; name=&quot;csrf&quot; value=&quot;{{ session.csrf }}&quot;&gt;&lt;button&gt;Выйти&lt;/button&gt;&lt;/form&gt;
+{% else %}&lt;a href=&quot;/login&quot;&gt;Вход&lt;/a&gt;&lt;a href=&quot;/register&quot;&gt;Регистрация&lt;/a&gt;{% endif %}
+&lt;/nav&gt;
+{% if errors %}&lt;section class=&quot;error&quot; role=&quot;alert&quot;&gt;&lt;h2&gt;Проверьте введённые данные&lt;/h2&gt;&lt;ul&gt;{% for error in errors %}&lt;li&gt;{{ error }}&lt;/li&gt;{% endfor %}&lt;/ul&gt;&lt;/section&gt;{% endif %}
+{% macro input(name,label,type=&#x27;text&#x27;) %}
+&lt;label&gt;{{ label }}&lt;input name=&quot;{{ name }}&quot; type=&quot;{{ type }}&quot; value=&quot;{{ &#x27;&#x27; if type == &#x27;password&#x27; else values.get(name,&#x27;&#x27;) }}&quot; required&gt;&lt;/label&gt;
+{% endmacro %}
+{% if page in [&#x27;login&#x27;,&#x27;register&#x27;] %}
+&lt;section&gt;&lt;h2&gt;{{ &#x27;Регистрация клиента&#x27; if page == &#x27;register&#x27; else &#x27;Вход в систему&#x27; }}&lt;/h2&gt;
+&lt;form method=&quot;post&quot;&gt;&lt;input type=&quot;hidden&quot; name=&quot;csrf&quot; value=&quot;{{ session.csrf }}&quot;&gt;
+{{ input(&#x27;login&#x27;,&#x27;Логин&#x27;) }}{{ input(&#x27;password&#x27;,&#x27;Пароль&#x27;,&#x27;password&#x27;) }}
+{% if page == &#x27;register&#x27; %}{{ input(&#x27;full_name&#x27;,&#x27;ФИО&#x27;) }}{{ input(&#x27;phone&#x27;,&#x27;Телефон: 8(999)123-45-67&#x27;) }}{{ input(&#x27;email&#x27;,&#x27;Электронная почта&#x27;,&#x27;email&#x27;) }}{% endif %}
+&lt;button&gt;{{ &#x27;Создать пользователя&#x27; if page == &#x27;register&#x27; else &#x27;Войти&#x27; }}&lt;/button&gt;&lt;/form&gt;
+&lt;p&gt;&lt;a href=&quot;{{ &#x27;/login&#x27; if page == &#x27;register&#x27; else &#x27;/register&#x27; }}&quot;&gt;{{ &#x27;Уже зарегистрированы? Вход&#x27; if page == &#x27;register&#x27; else &#x27;Ещё не зарегистрированы? Регистрация&#x27; }}&lt;/a&gt;&lt;/p&gt;&lt;/section&gt;
+{% elif page == &#x27;new&#x27; %}
+&lt;section&gt;&lt;h2&gt;Новая заявка&lt;/h2&gt;&lt;form method=&quot;post&quot;&gt;&lt;input type=&quot;hidden&quot; name=&quot;csrf&quot; value=&quot;{{ session.csrf }}&quot;&gt;
+{{ input(&#x27;equipment&#x27;,&#x27;Оборудование и модель&#x27;) }}
+&lt;label&gt;Неисправность&lt;textarea name=&quot;symptom&quot; required&gt;{{ values.get(&#x27;symptom&#x27;,&#x27;&#x27;) }}&lt;/textarea&gt;&lt;/label&gt;
+&lt;label&gt;Услуга&lt;select name=&quot;service_id&quot; required&gt;&lt;option value=&quot;&quot;&gt;Выберите услугу&lt;/option&gt;{% for s in services %}&lt;option value=&quot;{{ s.id }}&quot; {% if values.get(&#x27;service_id&#x27;) == s.id|string %}selected{% endif %}&gt;{{ s.name }}&lt;/option&gt;{% endfor %}&lt;/select&gt;&lt;/label&gt;
+{% for f in domain.fields %}&lt;label&gt;{{ f.label }}
+{% if f.type == &#x27;select&#x27; %}&lt;select name=&quot;{{ f.name }}&quot;&gt;&lt;option value=&quot;&quot;&gt;Выберите значение&lt;/option&gt;{% for choice in f.choices %}&lt;option {% if values.get(f.name) == choice %}selected{% endif %}&gt;{{ choice }}&lt;/option&gt;{% endfor %}&lt;/select&gt;
+{% else %}&lt;input name=&quot;{{ f.name }}&quot; value=&quot;{{ values.get(f.name,&#x27;&#x27;) }}&quot; type=&quot;{{ &#x27;number&#x27; if f.type in [&#x27;number&#x27;,&#x27;integer&#x27;] else &#x27;text&#x27; }}&quot; step=&quot;{{ &#x27;1&#x27; if f.type == &#x27;integer&#x27; else &#x27;any&#x27; }}&quot;&gt;{% endif %}&lt;/label&gt;{% endfor %}
+&lt;button&gt;Отправить заявку&lt;/button&gt;&lt;/form&gt;&lt;/section&gt;
+{% elif page == &#x27;list&#x27; %}
+&lt;section&gt;&lt;h2&gt;{{ &#x27;Очередь заявок&#x27; if user.role == &#x27;admin&#x27; else &#x27;Мои заявки&#x27; }}&lt;/h2&gt;
+&lt;form method=&quot;get&quot;&gt;&lt;label&gt;Статус&lt;select name=&quot;status&quot;&gt;&lt;option value=&quot;&quot;&gt;Все&lt;/option&gt;{% for s in [&#x27;Новая&#x27;,&#x27;В работе&#x27;,&#x27;Завершена&#x27;] %}&lt;option {% if status == s %}selected{% endif %}&gt;{{ s }}&lt;/option&gt;{% endfor %}&lt;/select&gt;&lt;/label&gt;&lt;button&gt;Применить фильтр&lt;/button&gt;&lt;/form&gt;
+{% for t in tickets %}&lt;article&gt;&lt;h3&gt;&lt;a href=&quot;/ticket/{{ t.id }}&quot;&gt;Заявка №{{ t.id }} · {{ t.equipment }}&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;{{ t.service }} · &lt;strong&gt;{{ t.status }}&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;Клиент: {{ t.full_name }} · Исполнитель: {{ t.technician or &#x27;Не назначен&#x27; }}&lt;/p&gt;&lt;/article&gt;{% else %}&lt;p&gt;Заявок по выбранным условиям нет.&lt;/p&gt;{% endfor %}&lt;/section&gt;
+{% elif page == &#x27;detail&#x27; %}
+&lt;section&gt;&lt;h2&gt;Заявка №{{ ticket.id }} · {{ ticket.status }}&lt;/h2&gt;&lt;p&gt;{{ ticket.equipment }} · {{ ticket.service }}&lt;/p&gt;&lt;p&gt;{{ ticket.symptom }}&lt;/p&gt;
+&lt;dl&gt;{% for f in domain.fields %}&lt;dt&gt;{{ f.label }}&lt;/dt&gt;&lt;dd&gt;{{ details.get(f.name) or &#x27;Не указано&#x27; }}&lt;/dd&gt;{% endfor %}&lt;/dl&gt;
+&lt;p&gt;Исполнитель: {{ ticket.technician or &#x27;Не назначен&#x27; }}&lt;/p&gt;&lt;p&gt;Результат: {{ ticket.result or &#x27;Работа ещё не завершена&#x27; }}&lt;/p&gt;
+{% if user.role == &#x27;admin&#x27; and ticket.status != &#x27;Завершена&#x27; %}
+&lt;form method=&quot;post&quot;&gt;&lt;input type=&quot;hidden&quot; name=&quot;csrf&quot; value=&quot;{{ session.csrf }}&quot;&gt;
+&lt;label&gt;Исполнитель&lt;select name=&quot;technician_id&quot;&gt;&lt;option value=&quot;&quot;&gt;Назначьте исполнителя&lt;/option&gt;{% for n in technicians %}&lt;option value=&quot;{{ n.id }}&quot; {% if ticket.technician_id == n.id %}selected{% endif %}&gt;{{ n.name }}&lt;/option&gt;{% endfor %}&lt;/select&gt;&lt;/label&gt;
+&lt;input type=&quot;hidden&quot; name=&quot;status&quot; value=&quot;{{ &#x27;В работе&#x27; if ticket.status == &#x27;Новая&#x27; else &#x27;Завершена&#x27; }}&quot;&gt;
+&lt;label&gt;Описание результата&lt;textarea name=&quot;result&quot;&gt;{{ values.get(&#x27;result&#x27;,ticket.result) }}&lt;/textarea&gt;&lt;/label&gt;
+&lt;button&gt;{{ &#x27;Принять в работу&#x27; if ticket.status == &#x27;Новая&#x27; else &#x27;Завершить заявку&#x27; }}&lt;/button&gt;&lt;/form&gt;{% endif %}&lt;/section&gt;
+&lt;section&gt;&lt;h2&gt;История обработки&lt;/h2&gt;{% for h in history %}&lt;article&gt;&lt;p&gt;{{ h.changed_at }} · {{ h.full_name }}&lt;/p&gt;&lt;p&gt;{{ h.old_status or &#x27;Создание&#x27; }} → &lt;strong&gt;{{ h.new_status }}&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;{{ h.comment }}&lt;/p&gt;&lt;/article&gt;{% endfor %}&lt;/section&gt;
+{% endif %}
+
+{% if page == &#x27;detail&#x27; %}
+&lt;section&gt;&lt;h2&gt;Отзыв о работе&lt;/h2&gt;
+{% for r in reviews %}&lt;p&gt;{{ r.body }}&lt;/p&gt;&lt;p&gt;{{ r.created_at }}&lt;/p&gt;{% else %}
+{% if user.role == &#x27;client&#x27; and ticket.status == &#x27;Завершена&#x27; %}
+&lt;form method=&quot;post&quot; action=&quot;/ticket/{{ ticket.id }}/review&quot;&gt;
+&lt;input type=&quot;hidden&quot; name=&quot;csrf&quot; value=&quot;{{ session.csrf }}&quot;&gt;
+&lt;label&gt;Отзыв&lt;textarea name=&quot;body&quot; required minlength=&quot;5&quot; maxlength=&quot;1000&quot;&gt;&lt;/textarea&gt;&lt;/label&gt;
+&lt;button&gt;Сохранить отзыв&lt;/button&gt;&lt;/form&gt;
+{% else %}&lt;p&gt;Отзыв доступен владельцу после завершения заявки.&lt;/p&gt;{% endif %}
+{% endfor %}&lt;/section&gt;{% endif %}
+&lt;/main&gt;&lt;/body&gt;&lt;/html&gt;
+</pre></section></div></div></article><article><header><small>ПП ПМ.05 · Серверная часть сервиса заявок</small><h1>flask/static/style.css</h1></header><div class="content"><div class="step"><span class="num">1</span><section class="block"><h2>Назначение и место</h2><p>Стили оболочки. Файл расположен в service-vNN/flask/static/style.css. Сохранить в UTF-8. Это одна законченная единица; код перенести полностью, затем проверить синтаксис и запустить. Относительный путь к domain.json идёт из выбранной папки на один уровень вверх. Свои предметные поля не переименовывать в поля образца.</p></section></div><div class="step"><span class="num">2</span><section class="block"><h2>Полный файл</h2><pre>:root{font-family:Arial,sans-serif;color:#18252a;background:#edf2f1;line-height:1.5}
+*{box-sizing:border-box}main{max-width:1000px;margin:auto;padding:28px}
+header{border-bottom:5px solid #136653}h1{font-size:30px}h2{font-size:23px}
+nav{display:flex;gap:20px;flex-wrap:wrap;align-items:center;padding:20px 0}
+a{color:#095749}section{background:white;padding:25px;margin:18px 0;border-radius:8px}
+form{max-width:620px}nav form{margin:0}label{display:block;font-weight:bold;margin:12px 0}
+input,select,textarea{display:block;width:100%;font:inherit;padding:10px;border:1px solid #889e97;border-radius:4px}
+textarea{min-height:95px}button{background:#136653;color:white;border:0;border-radius:4px;padding:11px 20px;font:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:3px solid #d79117;outline-offset:3px}
+article{border-left:4px solid #a5c5b9;padding:4px 18px;margin:14px 0;background:#f4f8f6}
+.error{background:#fff3ed;border:2px solid #a5361a}dt{font-weight:bold}dd{margin-left:0;margin-bottom:10px}
+footer{color:#536760;margin:24px 0}@media(max-width:600px){main{padding:12px}section{padding:16px}h1{font-size:24px}}
+</pre></section></div></div></article><article><header><small>ПП ПМ.05 · Серверная часть сервиса заявок</small><h1>flask/requirements.txt</h1></header><div class="content"><div class="step"><span class="num">1</span><section class="block"><h2>Назначение и место</h2><p>Зависимости. Файл расположен в service-vNN/flask/requirements.txt. Сохранить в UTF-8. Это одна законченная единица; код перенести полностью, затем проверить синтаксис и запустить. Относительный путь к domain.json идёт из выбранной папки на один уровень вверх. Свои предметные поля не переименовывать в поля образца.</p></section></div><div class="step"><span class="num">2</span><section class="block"><h2>Полный файл</h2><pre>Flask==3.1.3
+PyMySQL==1.2.0
+</pre></section></div></div></article><article><header><small>ПП ПМ.05 · Серверная часть сервиса заявок</small><h1>Проверка синтаксиса и запуск</h1></header><div class="content"><div class="step"><span class="num">1</span><section class="block"><h2>Терминал выбранного проекта</h2><p>Открыть PowerShell в папке flask своего проекта. Для Flask нужен Python 3.11+, для PHP — PHP 8.2+ с pdo_mysql, mbstring и JSON; MySQL/MariaDB и пустая собственная БД уже подготовлены. NN заменить номером, реквизиты — значениями проверенного подключения DBeaver. Переменные задавать в том же окне перед запуском; не копировать чужой пароль. Для PHP использовать установленный путь php.exe, если он отличается от XAMPP.</p></section></div><div class="step"><span class="num">2</span><section class="block"><h2>Подготовка окружения</h2><pre>py -3 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+</pre></section></div><div class="step"><span class="num">3</span><section class="block"><h2>Проверка файлов</h2><pre>.\.venv\Scripts\python.exe -m py_compile app.py db.py rules.py</pre></section></div><div class="step"><span class="num">4</span><section class="block"><h2>Подготовка и запуск</h2><pre>$env:DB_HOST=&quot;127.0.0.1&quot;
+$env:DB_PORT=&quot;3306&quot;
+$env:DB_NAME=&quot;pm05_vNN&quot;
+$env:DB_USER=&quot;учебный_пользователь&quot;
+$env:DB_PASSWORD=&quot;учебный_пароль&quot;
+.\.venv\Scripts\python.exe -m flask --app app create-admin
+.\.venv\Scripts\python.exe -m flask --app app run --port 5057</pre></section></div><div class="step"><span class="num">5</span><section class="block"><h2>Результат и ошибки</h2><p>В create-admin ввести adminpm05 и вымышленный пароль Practice123; выполнять один раз на новой БД. При duplicate login не повторять создание на старой БД. Открыть http://127.0.0.1:5057/register. После изменения Python остановить свой сервер Ctrl+C и запустить вновь. При ModuleNotFoundError установить requirements именно в .venv. Для PHP проверить модули командой -m; ошибка could not find driver означает отсутствие pdo_mysql. При HTTP 500 посмотреть сообщение в терминале сервера; проверить подключение, таблицы и операцию, затем исправить причину и повторить. При смене БД создать нового администратора. Терминал оставить работающим до конца сценариев. Учебный сервер слушает только 127.0.0.1.</p></section></div></div></article><article><header><small>ПП ПМ.05 · Серверная часть сервиса заявок</small><h1>Серверный контракт и прямой POST</h1></header><div class="content"><div class="step"><span class="num">1</span><section class="block"><h2>Маршруты</h2><p>GET/POST /register, /login; POST /logout; GET /; GET/POST /new; GET/POST /ticket/&lt;id&gt;; POST /ticket/&lt;id&gt;/review. Регистрация: login/password/full_name/phone/email. Новая заявка: equipment/symptom/service_id и поля domain.fields. Переход: status/technician_id/result. Отзыв: body. Каждый POST содержит csrf из текущей сессии. Успешная регистрация, вход, создание и отзыв перенаправляют 302; форма с предметной ошибкой возвращает 200 с сообщением и без записи. Чужая карточка — 404, запрещённая роль — 403, CSRF — 400. Отзыв: ранний/повторный — 409, длина — 400. История сохраняется при успешных статусных действиях.</p></section></div><div class="step"><span class="num">2</span><section class="block"><h2>Пример в Console браузера после входа</h2><pre>const csrf = document.querySelector(&#x27;input[name=csrf]&#x27;).value;
+const data = new URLSearchParams({csrf,service_id:&#x27;99999&#x27;,
+  equipment:&#x27;Учебное изделие&#x27;,symptom:&#x27;Проверка ошибочного запроса&#x27;});
+const response = await fetch(&#x27;/new&#x27;,{method:&#x27;POST&#x27;,body:data});
+console.log(response.status, await response.text());</pre></section></div><div class="step"><span class="num">3</span><section class="block"><h2>Ожидание</h2><p>Пример отправляет неизвестную услугу и должен показать серверную ошибку формы. Числа tickets и ticket_history остаются прежними. Для своих предметных случаев добавить поля из case.json. Не выполнять консольный пример на сторонних сайтах. Передавать контракт вместе с README и своим кодом.</p></section></div></div></article></html>

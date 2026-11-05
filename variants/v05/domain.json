@@ -1,0 +1,22 @@
+{
+  "title": "Обслуживание проекторов",
+  "fields": [
+    {
+      "name": "model",
+      "label": "Модель",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "light",
+      "label": "Источник света",
+      "type": "select",
+      "choices": [
+        "Лампа",
+        "Лазер"
+      ],
+      "required": true
+    }
+  ],
+  "rules": []
+}

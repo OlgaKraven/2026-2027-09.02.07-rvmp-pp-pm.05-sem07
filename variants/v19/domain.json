@@ -1,0 +1,24 @@
+{
+  "title": "Ремонт обуви",
+  "fields": [
+    {
+      "name": "shoe",
+      "label": "Тип обуви",
+      "type": "select",
+      "choices": [
+        "Ботинки",
+        "Туфли"
+      ],
+      "required": true
+    },
+    {
+      "name": "pairs",
+      "label": "Количество пар",
+      "type": "integer",
+      "min": 1,
+      "max": 5,
+      "required": true
+    }
+  ],
+  "rules": []
+}

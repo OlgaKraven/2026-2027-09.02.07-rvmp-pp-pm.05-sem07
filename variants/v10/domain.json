@@ -1,0 +1,19 @@
+{
+  "title": "Обслуживание кассового оборудования",
+  "fields": [
+    {
+      "name": "model",
+      "label": "Модель",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "serial",
+      "label": "Номер устройства",
+      "type": "text",
+      "required": true,
+      "pattern": "^[A-Za-z0-9]{1,30}$"
+    }
+  ],
+  "rules": []
+}

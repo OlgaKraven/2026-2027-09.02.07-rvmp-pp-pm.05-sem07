@@ -1,0 +1,26 @@
+{
+  "title": "Ремонт велосипедов",
+  "fields": [
+    {
+      "name": "bicycle",
+      "label": "Тип велосипеда",
+      "type": "select",
+      "choices": [
+        "Городской",
+        "Горный"
+      ],
+      "required": true
+    },
+    {
+      "name": "brake",
+      "label": "Тип тормозов",
+      "type": "select",
+      "choices": [
+        "Гидравлические",
+        "Механические"
+      ],
+      "required": true
+    }
+  ],
+  "rules": []
+}

@@ -1,0 +1,21 @@
+{
+  "title": "Ремонт автомобильной электроники",
+  "fields": [
+    {
+      "name": "device",
+      "label": "Тип устройства",
+      "type": "select",
+      "choices": [
+        "Встроенное",
+        "Переносное"
+      ],
+      "required": true
+    },
+    {
+      "name": "car",
+      "label": "Марка автомобиля",
+      "type": "text"
+    }
+  ],
+  "rules": []
+}

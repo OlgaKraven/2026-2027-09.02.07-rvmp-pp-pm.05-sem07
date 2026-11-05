@@ -1,3 +1,7 @@
 *.pdf binary
 *.jpg binary
 *.zip binary
+*.png binary
+*.docx binary
+*.pptx binary
+*.ttf binary

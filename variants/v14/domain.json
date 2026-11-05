@@ -1,0 +1,27 @@
+{
+  "title": "Ремонт электрических инструментов",
+  "fields": [
+    {
+      "name": "tool",
+      "label": "Вид инструмента",
+      "type": "select",
+      "choices": [
+        "Дрель",
+        "Шуруповёрт",
+        "Пила"
+      ],
+      "required": true
+    },
+    {
+      "name": "power",
+      "label": "Питание",
+      "type": "select",
+      "choices": [
+        "Сеть",
+        "Аккумулятор"
+      ],
+      "required": true
+    }
+  ],
+  "rules": []
+}

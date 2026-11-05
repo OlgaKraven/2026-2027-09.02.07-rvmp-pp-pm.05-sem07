@@ -1,0 +1,22 @@
+{
+  "title": "Ремонт игровых консолей",
+  "fields": [
+    {
+      "name": "model",
+      "label": "Модель",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "controller",
+      "label": "Контроллер в комплекте",
+      "type": "select",
+      "choices": [
+        "Да",
+        "Нет"
+      ],
+      "required": true
+    }
+  ],
+  "rules": []
+}

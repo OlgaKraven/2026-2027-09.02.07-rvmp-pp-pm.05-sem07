@@ -1,0 +1,20 @@
+{
+  "title": "Обслуживание торговых весов",
+  "fields": [
+    {
+      "name": "model",
+      "label": "Модель",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "load",
+      "label": "Максимальная нагрузка, кг",
+      "type": "number",
+      "min": 0.01,
+      "max": 100000,
+      "required": true
+    }
+  ],
+  "rules": []
+}

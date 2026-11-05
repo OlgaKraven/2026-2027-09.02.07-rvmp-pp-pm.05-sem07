@@ -45,7 +45,7 @@ def validate_registration(values):
         errors.append('Логин: от 6 до 40 латинских букв и цифр.')
     if not 8 <= len(values.get('password', '')) or len(values.get('password', '').encode('utf-8')) > 64:
         errors.append('Пароль: от 8 символов, не более 64 байт UTF-8.')
-    if not re.fullmatch(r'[А-Яа-яЁё ]{3,120}', values.get('full_name', '')):
+    if not re.fullmatch(r'[А-Яа-яЁё ]{3,120}', values.get('full_name', '').strip()):
         errors.append('ФИО: кириллица и пробелы.')
     if not re.fullmatch(r'8\(\d{3}\)\d{3}-\d{2}-\d{2}', values.get('phone', '')):
         errors.append('Телефон: 8(999)123-45-67.')

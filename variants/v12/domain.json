@@ -1,0 +1,32 @@
+{
+  "title": "Ремонт пылесосов",
+  "fields": [
+    {
+      "name": "model",
+      "label": "Модель",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "power",
+      "label": "Питание",
+      "type": "select",
+      "choices": [
+        "Сеть",
+        "Аккумулятор"
+      ],
+      "required": true
+    },
+    {
+      "name": "charger",
+      "label": "Зарядное устройство",
+      "type": "select",
+      "choices": [
+        "Да",
+        "Нет"
+      ],
+      "required": false
+    }
+  ],
+  "rules": []
+}

@@ -1,0 +1,23 @@
+{
+  "title": "Обслуживание сетевых маршрутизаторов",
+  "fields": [
+    {
+      "name": "model",
+      "label": "Модель",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "connection",
+      "label": "Тип подключения",
+      "type": "select",
+      "choices": [
+        "Ethernet",
+        "Wi-Fi",
+        "Оптика"
+      ],
+      "required": true
+    }
+  ],
+  "rules": []
+}

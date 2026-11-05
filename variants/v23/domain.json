@@ -1,0 +1,24 @@
+{
+  "title": "Ремонт жалюзи",
+  "fields": [
+    {
+      "name": "type",
+      "label": "Тип жалюзи",
+      "type": "select",
+      "choices": [
+        "Вертикальные",
+        "Горизонтальные"
+      ],
+      "required": true
+    },
+    {
+      "name": "width",
+      "label": "Ширина, см",
+      "type": "number",
+      "min": 20,
+      "max": 400,
+      "required": true
+    }
+  ],
+  "rules": []
+}

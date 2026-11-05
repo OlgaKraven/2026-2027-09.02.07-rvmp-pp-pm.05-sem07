@@ -1,5 +1,10 @@
 <?php
 declare(strict_types=1);
+set_exception_handler(function (Throwable $error): void {
+    http_response_code(500);
+    error_log($error->getMessage());
+    echo 'Не удалось выполнить операцию. Повторите позже.';
+});
 require __DIR__.'/lib.php';
 session_name('pm05_php');
 session_start(['cookie_httponly'=>true, 'cookie_samesite'=>'Lax']);
@@ -75,6 +80,25 @@ if ($page === 'new') {
     }
 }
 
+if ($page === 'review') {
+    if (!$post) fail(405);
+    $user = require_user();
+    if ($user['role'] !== 'client') fail(403);
+    $id = (int)($_GET['id'] ?? 0);
+    db()->beginTransaction();
+    try {
+        $ticket = query('SELECT * FROM tickets WHERE id=? AND user_id=? FOR UPDATE',[$id,$user['id']])->fetch();
+        if (!$ticket) { db()->rollBack(); fail(404); }
+        if ($ticket['status'] !== 'Завершена') { db()->rollBack(); fail(409); }
+        $body = trim($_POST['body'] ?? '');
+        if (mb_strlen($body) < 5 || mb_strlen($body) > 1000) { db()->rollBack(); fail(400); }
+        if (query('SELECT id FROM ticket_reviews WHERE ticket_id=?',[$id])->fetch()) { db()->rollBack(); fail(409); }
+        query('INSERT INTO ticket_reviews(ticket_id,user_id,body) VALUES(?,?,?)',[$id,$user['id'],$body]);
+        db()->commit();
+    } catch (Throwable $ex) { db()->rollBack(); throw $ex; }
+    go('ticket',$id);
+}
+
 if ($page === 'ticket') {
     $id = (int)($_GET['id'] ?? 0);
     if ($post) {
@@ -110,6 +134,7 @@ if ($page === 'ticket') {
     $details = json_decode($ticket['parameters'], true, flags:JSON_THROW_ON_ERROR);
     $history = query('SELECT h.*,u.full_name FROM ticket_history h JOIN users u ON u.id=h.actor_id WHERE ticket_id=? ORDER BY h.id', [$id])->fetchAll();
     $technicians = query('SELECT * FROM technicians WHERE active=TRUE')->fetchAll();
+    $reviews = query('SELECT body,created_at FROM ticket_reviews WHERE ticket_id=?',[$id])->fetchAll();
 }
 
 if ($page === 'list') {

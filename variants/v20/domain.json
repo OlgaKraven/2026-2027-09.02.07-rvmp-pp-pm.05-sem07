@@ -1,0 +1,32 @@
+{
+  "title": "Ремонт сумок и чемоданов",
+  "fields": [
+    {
+      "name": "item",
+      "label": "Вид изделия",
+      "type": "select",
+      "choices": [
+        "Сумка",
+        "Чемодан"
+      ],
+      "required": true
+    },
+    {
+      "name": "element",
+      "label": "Повреждённый элемент",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "wheels",
+      "label": "Колёса имеются",
+      "type": "select",
+      "choices": [
+        "Да",
+        "Нет"
+      ],
+      "required": true
+    }
+  ],
+  "rules": []
+}
