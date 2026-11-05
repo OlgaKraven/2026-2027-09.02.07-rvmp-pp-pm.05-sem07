@@ -170,4 +170,5 @@ def figure_slot(doc, label, tag, number, bookmark_name):
     p = doc.add_paragraph(style="Caption")
     p.add_run("Рисунок ")
     field(p, r"SEQ Рисунок \* ARABIC", str(number), bookmark=(number, bookmark_name))
-    p.add_run(" — " + label[:1].lower() + label[1:])
+    caption = label if label.split()[0].isupper() else label[:1].lower() + label[1:]
+    p.add_run(" — " + caption)
